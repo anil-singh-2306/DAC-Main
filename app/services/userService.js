@@ -57,10 +57,10 @@ exports.createUser = async (req, data) => {
     SELECT 
       locality_id, post_code_id, city_id, state_id, region_id, zone_id, country_id
       FROM client_1001.c_office
-      WHERE office_id = ${office_id}
+      WHERE office_id = ?
   `;
 
-  const [[location]] = await pool.query(sqlLocation);
+  const [[location]] = await pool.query(sqlLocation, [office_id]);
 
   const { post_code_id, city_id, state_id, country_id } = location;
 
@@ -89,7 +89,6 @@ exports.getUsers = async (req) => {
   FROM client_1001.c_user u
   LEFT JOIN da_role r ON u.role_id = r.role_id
   JOIN client_1001.c_office o ON u.office_id = o.office_id
-  
   `;
   const result = await pool.query(sql);
 
@@ -147,10 +146,10 @@ exports.updateUser = async (req, id, data) => {
     SELECT 
       locality_id, post_code_id, city_id, state_id, region_id, zone_id, country_id
       FROM client_1001.c_office
-      WHERE office_id = ${office_id}
+      WHERE office_id = ?
   `;
 
-  const [[location]] = await pool.query(sqlLocation);
+  const [[location]] = await pool.query(sqlLocation, [office_id]);
 
   const { post_code_id, city_id, state_id, country_id } = location;
 
@@ -181,6 +180,8 @@ exports.deleteUser = async (req, id) => {
 
 exports.updateStatus = async (req, id, data) => {
   const { role_id, status } = data;
+
+  console.log(role_id, status, id);
   
   let password, hashedPassword;
 

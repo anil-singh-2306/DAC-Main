@@ -657,7 +657,13 @@ exports.getAllPlacesByPostCode = async (id) => {
                 da_post_code.state_id,
                 da_post_code.region_id,
                 da_post_code.zone_id,
-                da_post_code.country_id`;
+                da_post_code.country_id,
+                da_city.city_name,
+                da_state.state_name,
+                da_region.region_name,
+                da_zone.zone_name,
+                da_country.country_name
+                `;
 
   const result = await pool.query(sql, [id]);
   return result[0];
