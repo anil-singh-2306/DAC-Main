@@ -11,7 +11,7 @@ exports.GetFillValues = async (req, res, next) => {
    console.error(err)
     res.status(400).json({
       success: false,
-      message: "Unable to add/update AWB Type."
+      message: "Unable to load data."
     });
   }
 };
