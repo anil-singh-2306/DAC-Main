@@ -274,7 +274,9 @@ exports.createState = async (req, res, next) => {
 
 exports.getStates = async (req, res, next) => {
   try {
-    const result = await service.getStates();
+    const session = req.session.userSession;
+
+    const result = await service.getStates(session);
     res.status(200).json({
       success: true,
       data: result

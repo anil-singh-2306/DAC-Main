@@ -9,7 +9,7 @@ async function checkIfExists(table_name, col_name, col_value) {
   return result[0][0].count > 0;
 }
 
-exports.createRole = async (req, data) => {
+exports.createRole = async (req, data, session) => {
   const isExists = await checkIfExists('da_role', 'role_name', data.role_name);
 
   if (isExists) {
@@ -21,34 +21,35 @@ exports.createRole = async (req, data) => {
   return result[0];
 };
 
-exports.getRoles = async (req) => {
+exports.getRoles = async (req, session) => {
   const sql = 'SELECT * FROM da_role';
   const result = await pool.query(sql);
   return result[0];
 };
 
-exports.getRole = async (req, id) => {
+exports.getRole = async (req, id, session) => {
   const sql = 'SELECT * FROM da_role WHERE role_id = ?';
   const result = await pool.query(sql, [id]);
   return result[0];
 };
 
-exports.updateRole = async (req, id, data) => {
+exports.updateRole = async (req, id, data, session) => {
   const sql = 'UPDATE da_role SET ? WHERE role_id = ?';
   const result = await pool.query(sql, [data, id]);
   return result;
 };
 
-exports.deleteRole = async (req, id) => {
+exports.deleteRole = async (req, id, session) => {
   const sql = 'DELETE FROM da_role WHERE role_id = ?';
   const result = await pool.query(sql, [id]);
   return result;
 };
 
-exports.createUser = async (req, data) => {
-  const { email, office_id, dob } = data;
+exports.createUser = async (req, data, session) => {
+  const { company_id, email, office_id, dob } = data;
+  //const { clientId } = session;
 
-  const userExists = await checkIfExists(`client_1001.c_user`, 'email', email);
+  const userExists = await checkIfExists(`client_${company_id}.c_user`, 'email', email);
   if (userExists) {
     throw new Error(`User with ${email} already exists.`);
   }
@@ -56,7 +57,7 @@ exports.createUser = async (req, data) => {
   const sqlLocation = `
     SELECT 
       locality_id, post_code_id, city_id, state_id, region_id, zone_id, country_id
-      FROM client_1001.c_office
+      FROM client_${company_id}.c_office
       WHERE office_id = ?
   `;
 
@@ -77,18 +78,20 @@ exports.createUser = async (req, data) => {
     country_id,
   };
 
-  const sql = `INSERT INTO client_1001.c_user SET ?`;
+  const sql = `INSERT INTO client_${company_id}.c_user SET ?`;
   const [result] = await pool.query(sql, [user]);
 
   return result;
 };
 
-exports.getUsers = async (req) => {
+exports.getUsers = async (req, session) => {
+  //console.log('client Id in get users service method', session.clientId);
+  const { clientId } = session;
   const sql = `
   SELECT u.*, r.role_name, o.office_name
-  FROM client_1001.c_user u
+  FROM client_${clientId}.c_user u
   LEFT JOIN da_role r ON u.role_id = r.role_id
-  JOIN client_1001.c_office o ON u.office_id = o.office_id
+  JOIN client_${clientId}.c_office o ON u.office_id = o.office_id
   `;
   const result = await pool.query(sql);
 
@@ -133,19 +136,22 @@ exports.getUsers = async (req) => {
   return formattedRows;
 };
 
-exports.getUser = async (req, id) => {
-  const sql = `SELECT * FROM client_1001.c_user WHERE id = ?`;
+exports.getUser = async (req, id, session) => {
+  const { clientId } = session;
+
+  const sql = `SELECT * FROM client_${clientId}.c_user WHERE id = ?`;
   const result = await pool.query(sql, [id]);
   return result[0];
 };
 
-exports.updateUser = async (req, id, data) => {
+exports.updateUser = async (req, id, data, session) => {
   const { office_id, dob } = data;
+  const { clientId } = session;
   
   const sqlLocation = `
     SELECT 
       locality_id, post_code_id, city_id, state_id, region_id, zone_id, country_id
-      FROM client_1001.c_office
+      FROM client_${clientId}.c_office
       WHERE office_id = ?
   `;
 
@@ -166,20 +172,23 @@ exports.updateUser = async (req, id, data) => {
     country_id,
   };
 
-  const sql = `UPDATE client_1001.c_user SET ? WHERE id = ?`;
+  const sql = `UPDATE client_${clientId}.c_user SET ? WHERE id = ?`;
   const [result] = await pool.query(sql, [user, id]);
 
   return result;
   };
 
-exports.deleteUser = async (req, id) => {
-  const sql = `DELETE FROM client_1001.c_user WHERE id = ?`;
+exports.deleteUser = async (req, id, session) => {
+  const { clientId } = session;
+
+  const sql = `DELETE FROM client_${clientId}.c_user WHERE id = ?`;
   const result = await pool.query(sql, [id]);
   return result;
 };
 
-exports.updateStatus = async (req, id, data) => {
+exports.updateStatus = async (req, id, data, session) => {
   const { role_id, status } = data;
+  const { clientId } = session;
 
   console.log(role_id, status, id);
   
@@ -208,7 +217,7 @@ exports.updateStatus = async (req, id, data) => {
     role_id: status ? role_id : null,
   };
 
-  const sql = `UPDATE client_1001.c_user SET ? WHERE id = ?`;
+  const sql = `UPDATE client_${clientId}.c_user SET ? WHERE id = ?`;
   const [result] = await pool.query(sql, [user, id]);
 
   return result;

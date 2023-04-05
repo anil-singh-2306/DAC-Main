@@ -405,7 +405,8 @@ exports.createState = async (data) => {
   await exports.savePlaces(data, 'state');
 };
 
-exports.getStates = async () => {
+exports.getStates = async (session) => {
+  const {clientId, userId} = session;
   const col = ['da_state.state_id as `Id`',
                 'da_state.state_name as `Name`',
                 'da_region.region_id as `RegionId`',
@@ -419,12 +420,14 @@ exports.getStates = async () => {
   const sql = `SELECT ${col}
                 FROM 
                   da_state 
-                  JOIN da_region ON da_state.region_id = da_region.region_id
-                  JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
-                  JOIN da_country ON da_zone.country_id = da_country.country_id 
+                    JOIN da_region ON da_state.region_id = da_region.region_id
+                    JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
+                    JOIN da_country ON da_zone.country_id = da_country.country_id 
+                    JOIN client_${clientId}.c_user ON client_${clientId}.c_user.state_id = da_state.state_id
+                  WHERE client_${clientId}.c_user.id = ?
                 ORDER BY da_state.created_at DESC`;
 
-  const result = await pool.query(sql);
+  const result = await pool.query(sql, [userId]);
 
   const rows = result?.[0] || [];
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];

@@ -10,7 +10,7 @@ exports.authenticate = async (clientId, email, password, res) => {
                     FROM client_${clientId}.c_user u
                         INNER JOIN da_company c ON u.company_id = c.company_id
                         INNER JOIN da_role r ON u.role_id = r.role_id
-                        LEFT JOIN client_${clientId}.c_office  office on office.office_id = u.office_id
+                        LEFT JOIN client_${clientId}.c_office  office on u.office_id = office.office_id
                     WHERE u.email = ?
                 `;
     

@@ -18,6 +18,8 @@ exports.login = async (req, res, next) => {
             officeId: user.office_id
         };
         req.session.save();
+        // send response with session cookie
+        res.cookie('connect.sid', req.sessionID);
         //res.cookie('refreshToken', refreshToken, { httpOnly: true });
         res.status(200).json({
             accessToken: accessToken,
