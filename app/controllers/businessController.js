@@ -189,7 +189,8 @@ exports.createBranch = async (req, res, next) => {
   
   exports.getOffices = async (req, res, next) => {
     try {
-      const result = await service.getOffices(req);
+      const session = req.session.userSession;
+      const result = await service.getOffices(req, session);
       res.status(200).json({
         success: true,
         data: result

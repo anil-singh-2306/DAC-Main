@@ -154,9 +154,13 @@ exports.createBranch = async (req, data) => {
     return result[0];
   };
   
-  exports.getOffices = async (req, ) => {
-    const sql = `SELECT * FROM client_1001.c_office`;
-    const result = await pool.query(sql);
+  exports.getOffices = async (req, session) => {
+    const {clientId, userId} = session;
+
+    const sql = `SELECT * FROM client_${clientId}.c_office 
+                  WHERE parent_office_id = (SELECT office_id FROM client_${clientId}.c_user WHERE id = ?)`;
+
+    const result = await pool.query(sql, [userId]);
 
   const rows = result?.[0] || [];
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];

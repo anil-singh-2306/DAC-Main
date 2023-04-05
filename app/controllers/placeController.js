@@ -361,7 +361,9 @@ exports.createCity = async (req, res, next) => {
 
 exports.getCities = async (req, res, next) => {
   try {
-    const result = await service.getCities();
+    const session = req.session.userSession;
+
+    const result = await service.getCities(session);
     res.status(200).json({
       success: true,
       data: result
@@ -446,7 +448,9 @@ exports.createPostCode = async (req, res, next) => {
 
 exports.getPostCodes = async (req, res, next) => {
   try {
-    const result = await service.getPostCodes();
+    const session = req.session.userSession;
+
+    const result = await service.getPostCodes(session);
     res.status(200).json({
       success: true,
       data: result
@@ -580,7 +584,8 @@ exports.createLocality = async (req, res, next) => {
 
 exports.getLocalities = async (req, res, next) => {
   try {
-    const result = await service.getLocalities();
+    const session = req.session.userSession;
+    const result = await service.getLocalities(session);
     res.status(200).json({
       success: true,
       data: result

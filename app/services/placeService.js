@@ -483,7 +483,9 @@ exports.createCity = async (data) => {
   await exports.savePlaces(data, 'city');
 };
 
-exports.getCities = async () => {
+exports.getCities = async (session) => {
+  const {clientId, userId} = session;
+
   const col = ['da_city.city_id as `Id`',
                 'da_city.city_name as `Name`',
                 'da_state.state_id as `StateId`', 
@@ -498,13 +500,15 @@ exports.getCities = async () => {
   const sql = `SELECT ${col}
                 FROM 
                   da_city 
-                  JOIN da_state ON da_city.state_id = da_state.state_id 
-                  JOIN da_region ON da_state.region_id = da_region.region_id 
-                  JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
-                  JOIN da_country ON da_zone.country_id = da_country.country_id 
+                    JOIN da_state ON da_city.state_id = da_state.state_id 
+                    JOIN da_region ON da_state.region_id = da_region.region_id 
+                    JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
+                    JOIN da_country ON da_zone.country_id = da_country.country_id 
+                    JOIN client_${clientId}.c_user ON client_${clientId}.c_user.state_id = da_state.state_id
+                  WHERE client_${clientId}.c_user.id = ?
                 ORDER BY da_city.created_at DESC`;
 
-  const result = await pool.query(sql);
+  const result = await pool.query(sql, [userId]);
 
   const rows = result?.[0] || [];
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
@@ -561,7 +565,9 @@ exports.createPostCode = async (data) => {
   await exports.savePlaces(data, 'post_code');
 };
 
-exports.getPostCodes = async () => {
+exports.getPostCodes = async (session) => {
+  const {clientId, userId} = session;
+
   const col = ['da_post_code.post_code_id as `Id`',
                 'da_post_code.post_code as `Name`',
                 'da_city.city_id as `CityId`',
@@ -581,9 +587,11 @@ exports.getPostCodes = async () => {
                   JOIN da_region ON da_state.region_id = da_region.region_id 
                   JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
                   JOIN da_country ON da_zone.country_id = da_country.country_id 
+                  JOIN client_${clientId}.c_user ON client_${clientId}.c_user.city_id = da_city.city_id
+                  WHERE client_${clientId}.c_user.id = ?
                 ORDER BY da_post_code.created_at DESC`;
 
-  const result = await pool.query(sql);
+  const result = await pool.query(sql, [userId]);
 
   const rows = result?.[0] || [];
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
@@ -681,7 +689,9 @@ exports.createLocality = async (data) => {
   await exports.savePlaces(data, 'locality');
 };
 
-exports.getLocalities = async () => {
+exports.getLocalities = async (session) => {
+  const {clientId, userId} = session;
+
   const col = ['da_locality.locality_id as `Id`',
                 'da_locality.locality_name as `Name`',
                 'da_post_code.post_code_id as `PostCodeId`',
@@ -704,9 +714,11 @@ exports.getLocalities = async () => {
                   JOIN da_region ON da_state.region_id = da_region.region_id 
                   JOIN da_zone ON da_region.zone_id = da_zone.zone_id 
                   JOIN da_country ON da_zone.country_id = da_country.country_id 
+                  JOIN client_${clientId}.c_user ON client_${clientId}.c_user.post_code_id = da_post_code.post_code_id
+                  WHERE client_${clientId}.c_user.id = ?
                 ORDER BY da_locality.created_at DESC`;
 
-  const result = await pool.query(sql);
+  const result = await pool.query(sql, [userId]);
 
   const rows = result?.[0] || [];
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
