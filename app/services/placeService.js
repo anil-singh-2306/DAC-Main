@@ -2,7 +2,7 @@ const pool = require('../config/db');
 const { format } = require('date-fns');
 
 async function getParentData(tableColumns, childTable, parentTable, joinColumn, whereColumn, whereValue) {
-  const sql = `SELECT COUNT(*) as count, ?? FROM ?? INNER JOIN ?? ON ?? = ?? WHERE ?? = ?`;
+  const sql = 'SELECT COUNT(*) as count, ?? FROM ?? INNER JOIN ?? ON ?? = ?? WHERE ?? = ? GROUP BY ??';
   const result = await pool.query(sql, [
     tableColumns,
     childTable, 
@@ -10,7 +10,8 @@ async function getParentData(tableColumns, childTable, parentTable, joinColumn, 
     `${childTable}.${joinColumn}`,
     `${parentTable}.${joinColumn}`,
     `${childTable}.${whereColumn}`,
-    whereValue
+    whereValue,
+    tableColumns
   ]);
   return result[0];
 }
@@ -95,7 +96,7 @@ exports.savePlaces = async (data, type, id = 0, isEdit = false) => {
       
       if (isEdit) {
           const regionId = id;
-          sql = `UPDATE da_region SET ? WHERE region_id = ${regionId}`;
+          sql = `UPDATE da_region SET ? WHERE region_id = '${regionId}'`;
       } else {
 		  
           sql = `INSERT INTO da_region SET ?`;
@@ -110,7 +111,7 @@ exports.savePlaces = async (data, type, id = 0, isEdit = false) => {
 
       if (isEdit) {
           const stateId = id;
-          sql = `UPDATE da_state SET ? WHERE state_id = ${stateId}`;
+          sql = `UPDATE da_state SET ? WHERE state_id = '${stateId}'`;
       } else {
           sql = `INSERT INTO da_state SET ?`;
       }
@@ -126,7 +127,7 @@ exports.savePlaces = async (data, type, id = 0, isEdit = false) => {
 
       if (isEdit) {
           const cityId = id;
-          sql = `UPDATE da_city SET ? WHERE city_id = ${cityId}`;
+          sql = `UPDATE da_city SET ? WHERE city_id = '${cityId}'`;
       } else {
           sql = `INSERT INTO da_city SET ?`;
       }
@@ -142,7 +143,7 @@ exports.savePlaces = async (data, type, id = 0, isEdit = false) => {
 
       if (isEdit) {
           const postCodeId = id;
-          sql = `UPDATE da_post_code SET ? WHERE post_code_id = ${postCodeId}`;
+          sql = `UPDATE da_post_code SET ? WHERE post_code_id = '${postCodeId}'`;
       } else {
           sql = `INSERT INTO da_post_code SET ?`;
       }
@@ -159,7 +160,7 @@ exports.savePlaces = async (data, type, id = 0, isEdit = false) => {
 
       if (isEdit) {
           const localityId = id;
-          sql = `UPDATE da_locality SET ? WHERE locality_id = ${localityId}`;
+          sql = `UPDATE da_locality SET ? WHERE locality_id = '${localityId}'`;
       } else {
           sql = `INSERT INTO da_locality SET ?`;
       }
@@ -248,13 +249,22 @@ exports.deleteCountry = async (id) => {
 exports.createZone = async (data) => {
   const isExists = await checkIfExists('da_zone', 'zone_name', data.zone_name);
   if (isExists) {
-    throw new Error(`Zone ${data.zone_name} is already exists.`);
+    throw new Error(`Zone ${data.zone_name} already exists.`);
   }
+
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(zone_id, 2) AS UNSIGNED)) AS max_id FROM da_zone WHERE zone_id LIKE "Z%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'Z' + String(nextNumericId).padStart(2, '0');
+
+  data.zone_id = nextId;
 
   const sql = 'INSERT INTO da_zone SET ?';
   const result = await pool.query(sql, [data]);
   return result[0];
 };
+
 
 exports.getZones = async () => {
   const col = ['da_zone.zone_id as `Id`', 
@@ -328,6 +338,14 @@ exports.createRegion = async (data) => {
     throw new Error(`Region ${data.region_name} is already exists.`);
   }
 
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(region_id, 2) AS UNSIGNED)) AS max_id FROM da_region WHERE region_id LIKE "R%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'R' + String(nextNumericId).padStart(2, '0');
+
+  data.region_id = nextId;
+
   await exports.savePlaces(data, 'region');
   
 };
@@ -397,10 +415,20 @@ exports.deleteRegion = async (id) => {
 };
 
 exports.createState = async (data) => {
+
   const isExists = await checkIfExists('da_state', 'state_name', data.state_name);
+  
   if (isExists) {
     throw new Error(`State ${data.state_name} is already exists.`);
   }
+
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(state_id, 2) AS UNSIGNED)) AS max_id FROM da_state WHERE state_id LIKE "S%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'S' + String(nextNumericId).padStart(2, '0');
+
+  data.state_id = nextId;
 
   await exports.savePlaces(data, 'state');
 };
@@ -475,10 +503,20 @@ exports.deleteState = async (id) => {
 };
 
 exports.createCity = async (data) => {
+
   const isExists = await checkIfExists('da_city', 'city_name', data.city_name);
+  
   if (isExists) {
     throw new Error(`City ${data.city_name} is already exists.`);
   }
+
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(city_id, 2) AS UNSIGNED)) AS max_id FROM da_city WHERE city_id LIKE "C%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'C' + String(nextNumericId).padStart(2, '0');
+
+  data.city_id = nextId;
 
   await exports.savePlaces(data, 'city');
 };
@@ -557,10 +595,20 @@ exports.deleteCity = async (id) => {
 };
 
 exports.createPostCode = async (data) => {
+
   const isExists = await checkIfExists('da_post_code', 'post_code', data.post_code);
+  
   if (isExists) {
-    throw new Error(`Postal Code ${data.post_code} is already exists.`);
+    throw new Error(`Postal code ${data.post_code} is already exists.`);
   }
+
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(post_code_id, 2) AS UNSIGNED)) AS max_id FROM da_post_code WHERE post_code_id LIKE "P%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'P' + String(nextNumericId).padStart(6, '0');
+
+  data.post_code_id = nextId;
 
   await exports.savePlaces(data, 'post_code');
 };
@@ -681,10 +729,20 @@ exports.getAllPlacesByPostCode = async (id) => {
 };
 
 exports.createLocality = async (data) => {
+
   const isExists = await checkIfExists('da_locality', 'locality_name', data.locality_name);
+  
   if (isExists) {
     throw new Error(`Locality ${data.locality_name} is already exists.`);
   }
+
+  const maxIdSql = 'SELECT MAX(CAST(SUBSTR(locality_id, 2) AS UNSIGNED)) AS max_id FROM da_locality WHERE locality_id LIKE "L%"';
+  const maxIdResult = await pool.query(maxIdSql);
+
+  const nextNumericId = (maxIdResult[0][0].max_id || 0) + 1;
+  const nextId = 'L' + String(nextNumericId).padStart(6, '0');
+
+  data.locality_id = nextId;
 
   await exports.savePlaces(data, 'locality');
 };
