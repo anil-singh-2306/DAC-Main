@@ -2,7 +2,8 @@ const service = require('../services/businessService');
 
 exports.createBusiness = async (req, res, next) => {
   try {
-    const result = await service.createBusiness(req, req.body);
+    const session = req.session.userSession;
+    const result = await service.createBusiness(req, req.body, session);
     res.status(201).json({
       success: true,
       data: result
@@ -87,7 +88,8 @@ exports.deleteBusiness = async (req, res, next) => {
 
 exports.createBranch = async (req, res, next) => {
     try {
-      const result = await service.createBranch(req, req.body);
+      const session = req.session.userSession;
+      const result = await service.createBranch(req, req.body, session);
       res.status(201).json({
         success: true,
         data: result
@@ -172,7 +174,8 @@ exports.createBranch = async (req, res, next) => {
 
   exports.createOffice = async (req, res, next) => {
     try {
-      const result = await service.createOffice(req, req.body);
+      const session = req.session.userSession;
+      const result = await service.createOffice(req, req.body, session);
       res.status(201).json({
         success: true,
         data: result
