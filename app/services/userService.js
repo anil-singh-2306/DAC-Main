@@ -88,7 +88,8 @@ exports.getUsers = async (req, session) => {
   //console.log('client Id in get users service method', session.clientId);
   const { clientId } = session;
   const sql = `
-  SELECT u.first_name, u.last_name, u.email, u.temp_password, r.role_name, u.mobile, o.office_name, u.office_id, u.id
+  SELECT u.first_name, u.last_name, u.email, u.temp_password, r.role_name, u.mobile, o.office_name, u.office_id, 
+  u.status, u.dob, u.created_at, u.updated_at, u.id
   FROM client_${clientId}.c_user u
   LEFT JOIN da_role r ON u.role_id = r.role_id
   JOIN client_${clientId}.c_office o ON u.office_id = o.office_id

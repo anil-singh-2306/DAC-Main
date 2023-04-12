@@ -1,7 +1,8 @@
 const controllers = require('../controllers/placeController');
+const authMiddleware = require('../middlewares/authenticate');
 const router = require('express').Router();
 
-router.post('/country', controllers.createCountry);
+router.post('/country', authMiddleware.isAllowed('create'),controllers.createCountry);
 router.get('/country', controllers.getCountries);
 router.get('/country/:id', controllers.getCountry);
 router.put('/country/:id', controllers.updateCountry);
