@@ -147,7 +147,7 @@ exports.deleteAwbSales = async (req, res, next) => {
 
 exports.awbPurchaseFillValues = async (req, res, next) => {
   try {
-    const result = await service.getPurchaseFillValues(req);
+    const result = await service.getPurchaseFillValues(req.session.userSession.officeId);
     res.status(201).json({
       success: true,
       data: result
