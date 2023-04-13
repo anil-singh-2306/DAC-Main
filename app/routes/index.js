@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 
 console.log('Static files directory:', path.join(__dirname, '..', '..', 'images'));
-app.use('/images', express.static(path.join(__dirname, '..', '..', 'images')));
+app.use('/images', express.static(path.join(__dirname, '..', '..', 'images/')));
 
 app.use('/auth', require('./authRouter'));
 app.use('/image', require('./imageRouter'));

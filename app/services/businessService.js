@@ -50,7 +50,9 @@ exports.getBusinesses = async (req) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'created_at') {
+        } else if (columns[i - 1] === 'status') {
+          obj['status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'created_at') {
           const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
           obj['created_at'] = date;
       } else if (columns[i - 1] === 'updated_at') {
@@ -130,7 +132,9 @@ exports.createBranch = async (req, data, session) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'created_at') {
+        } else if (columns[i - 1] === 'status') {
+          obj['status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'created_at') {
           const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
           obj['created_at'] = date;
       } else if (columns[i - 1] === 'updated_at') {
@@ -222,7 +226,9 @@ exports.createBranch = async (req, data, session) => {
             val.forEach((value, i) => {
               if (i === 0) {
                 obj['seq'] = value;
-              } else if (columns[i - 1] === 'created_at') {
+              } else if (columns[i - 1] === 'status') {
+                obj['status'] = value === 0 ? false : true;
+              }else if (columns[i - 1] === 'created_at') {
                 const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
                 obj['created_at'] = date;
               } else if (columns[i - 1] === 'updated_at') {

@@ -212,7 +212,9 @@ exports.getCountries = async () => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -296,7 +298,9 @@ exports.getZones = async () => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -382,7 +386,9 @@ exports.getRegions = async () => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -470,7 +476,9 @@ exports.getStates = async (session) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -561,7 +569,9 @@ exports.getCities = async (session) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -654,7 +664,9 @@ exports.getPostCodes = async (session) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
@@ -791,7 +803,9 @@ exports.getLocalities = async (session) => {
       val.forEach((value, i) => {
         if (i === 0) {
           obj['seq'] = value;
-        } else if (columns[i - 1] === 'Created At') {
+        } else if (columns[i - 1] === 'Status') {
+          obj['Status'] = value === 0 ? false : true;
+        }else if (columns[i - 1] === 'Created At') {
             const date = value ? format(new Date(value), 'dd/MM/yyyy') : '';
             obj['Created At'] = date;
         } else {
