@@ -8,7 +8,7 @@ exports.GetId = async (tableName,column,prefix,bufferZeros)=>{
     `
 
     const res = await pool.query(sql);
-    if(res[0].length>0){
+    if(res[0].length>0 && res[0][0]["col"]){
         let maxColumn = res[0][0]["col"];
         let maxVal = parseInt(maxColumn.replace(prefix,'')) +1 ;
         maxVal = maxVal.toString();;

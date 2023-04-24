@@ -17,6 +17,8 @@ router.put('/booking/:id', controllers.CreatBooking);
 router.get('/booking/', controllers.GetBookings);
 router.get('/booking/:id', controllers.GetBookings);
 router.delete('/booking/:id', controllers.DeleteBooking);
+router.get('/consignordetail/:mobile', controllers.GetConsignorDetail);
+router.get('/consigneedetail/:mobile', controllers.GetConsigneeDetail);
 
 
 module.exports = router

@@ -222,3 +222,35 @@ exports.DeleteBooking = async (req, res, next) => {
     });
   }
 };
+
+exports.GetConsignorDetail = async (req, res, next) => {
+  try {
+    const result = await service.getConsignorDetail(req.params.mobile);
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+   console.error(err)
+    res.status(400).json({
+      success: false,
+      message: "Unable to get consignor detail."
+    });
+  }
+};
+
+exports.GetConsigneeDetail = async (req, res, next) => {
+  try {
+    const result = await service.getConsigneeDetail(req.params.mobile);
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+   console.error(err)
+    res.status(400).json({
+      success: false,
+      message: "Unable to get consignee detail."
+    });
+  }
+};
