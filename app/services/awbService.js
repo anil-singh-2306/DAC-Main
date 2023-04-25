@@ -433,9 +433,19 @@ exports.getIssueFillValues = async (officeId) => {
   }
 
   const sqlStartingNo = `
-      Select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, p.starting_no as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
-      from client_1001.c_awb_purchase p
-      inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
+    Select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, p.starting_no as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
+    from client_1001.c_awb_purchase p
+    inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
+    left join client_1001.c_awb_issue as iss on iss.starting_no = p.starting_no 
+    where iss.id is null
+    
+      // union all
+      
+      // select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, cast( (iss.end_no + 1 ) as Signed )as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
+      // from client_1001.c_awb_issue as iss
+      // left join client_1001.c_awb_purchase as p on iss.awb_purchase_id = p.awb_purchase_id and iss.starting_no = p.starting_no and iss.end_no <> p.end_no
+      // where p.id is not null
+  
   `
 
   const startingNos = await pool.query(sqlStartingNo);
@@ -473,9 +483,12 @@ exports.createAwbIssue = async (req, data, id) => {
 
   let existAWBIssue = `
   
-      select 1
+      select 1 
       from client_1001.c_awb_issue
       where awb_id = '${data.awbtype}'
+      And awb_purchase_id ='${data.purchaseid}'
+      and starting_no = ${data.startingno}
+      And end_no = ${data.endno}
   `
 
   if (id) {
@@ -555,7 +568,7 @@ exports.getAwbIssue = async (req, id) => {
            true as 'delete', true as 'edit'
            from client_1001.c_awb_issue s
            inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
-           left join client_1001.c_awb_purchase p on p.id = s.awb_purchase_id
+           left join client_1001.c_awb_purchase p on p.awb_purchase_id = s.awb_purchase_id
            inner join client_1001.c_office roffice on roffice.office_id = s.receiver_office_id
            inner join client_1001.c_office office on office.office_id = s.office_id
            where s.status = 1
