@@ -437,14 +437,9 @@ exports.getIssueFillValues = async (officeId) => {
     from client_1001.c_awb_purchase p
     inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
     left join client_1001.c_awb_issue as iss on iss.starting_no = p.starting_no 
-    where iss.id is null
+    where iss.id is null;
     
-      // union all
-      
-      // select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, cast( (iss.end_no + 1 ) as Signed )as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
-      // from client_1001.c_awb_issue as iss
-      // left join client_1001.c_awb_purchase as p on iss.awb_purchase_id = p.awb_purchase_id and iss.starting_no = p.starting_no and iss.end_no <> p.end_no
-      // where p.id is not null
+
   
   `
 
