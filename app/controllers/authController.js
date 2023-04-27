@@ -28,6 +28,7 @@ exports.login = async (req, res, next) => {
             lastname:user.last_name,
             email:user.email,
             role: user.role_name,
+            roleid: user.role_id,
             img:`client_${client_id}/user/${user.profile_picture}`,
             brandlogo:user.logo,
             brandname:user.name
