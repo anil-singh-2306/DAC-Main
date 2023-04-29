@@ -25,28 +25,38 @@ exports.isAllowed = (action) => {
       const session = req.session.userSession;
       const clientId = session?.clientId;
 
+      //console.dir(req.headers);
+      //console.log(req.headers.authorization, token, process.env.ACCESS_SECRET);
+
       const token = req.headers.authorization;
-      console.dir(req.headers);
-      console.log(req.headers.authorization, token, process.env.ACCESS_SECRET);
       const decodedToken = jwt.verify(token, process.env.ACCESS_SECRET);
       const userRole = decodedToken.role_id;
 
       const query = `
-        SELECT permission_set
+        SELECT per_create, per_read, per_update, per_delete, per_export
         FROM client_${clientId}.c_role_permissions
         WHERE role_id = ? AND submenu_id = ? AND status = 1 AND is_visible = 1
       `;
-      //const [rows] = await db.query(query, [userRole, req.body.submenu_id]);
       const [rows] = await pool.query(query, [userRole, 9]);
 
       if (rows.length === 0) {
         throw new Error('Invalid resource or action');
       }
 
-      const allowedPermissionArr = rows[0].permission_set.split(',');
-      if (!allowedPermissionArr.includes(action)) {
+      const allowedPermissionObj = rows[0];
+      const allowedPermissionArr = Object.keys(allowedPermissionObj)
+        .filter(permission => allowedPermissionObj[permission] === 1)
+        .map(permission => permission.replace('per_', '')); // remove "per_" prefix
+
+      //console.log(allowedPermissionArr);
+      const isAllowed = action.every(permission => allowedPermissionArr.includes(permission));
+
+      //console.log(isAllowed);
+      if (!isAllowed) {
+        //console.log('Unauthorized');
         throw new Error('Unauthorized');
       } else {
+        //console.log('authorized');
         next();
       }
     } catch (err) {
@@ -55,4 +65,3 @@ exports.isAllowed = (action) => {
     }
   };
 };
-

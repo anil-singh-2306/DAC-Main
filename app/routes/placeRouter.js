@@ -2,11 +2,11 @@ const controllers = require('../controllers/placeController');
 const authMiddleware = require('../middlewares/authenticate');
 const router = require('express').Router();
 
-router.post('/country', authMiddleware.isAllowed('create'),controllers.createCountry);
-router.get('/country', controllers.getCountries);
-router.get('/country/:id', controllers.getCountry);
-router.put('/country/:id', controllers.updateCountry);
-router.delete('/country/:id', controllers.deleteCountry);
+router.post('/country', authMiddleware.isAllowed(['create']),controllers.createCountry);
+router.get('/country', authMiddleware.isAllowed(['read']), controllers.getCountries);
+router.get('/country/:id', authMiddleware.isAllowed(['read']), controllers.getCountry);
+router.put('/country/:id', authMiddleware.isAllowed(['update']), controllers.updateCountry);
+router.delete('/country/:id', authMiddleware.isAllowed(['delete']), controllers.deleteCountry);
 
 router.post('/zone', controllers.createZone);
 router.get('/zone', controllers.getZones);
