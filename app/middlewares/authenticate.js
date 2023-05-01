@@ -19,7 +19,7 @@ exports.isAuthenticated = (req, res, next) => {
 };
 
 // Middleware
-exports.isAllowed = (action) => {
+exports.isAllowed = (action, menu) => {
   return async (req, res, next) => {
     try {
       const session = req.session.userSession;
@@ -32,12 +32,19 @@ exports.isAllowed = (action) => {
       const decodedToken = jwt.verify(token, process.env.ACCESS_SECRET);
       const userRole = decodedToken.role_id;
 
+      const queryMenu = `SELECT id FROM client_${clientId}.c_menu WHERE LOWER(name) = LOWER(?)`;
+      const [menuRows] = await pool.query(queryMenu, [menu]);
+      if (menuRows.length === 0) {
+        throw new Error('Invalid resource');
+      }
+      const menuId = menuRows[0].id;
+
       const query = `
         SELECT per_create, per_read, per_update, per_delete, per_export
         FROM client_${clientId}.c_role_permissions
         WHERE role_id = ? AND submenu_id = ? AND status = 1 AND is_visible = 1
       `;
-      const [rows] = await pool.query(query, [userRole, 9]);
+      const [rows] = await pool.query(query, [userRole, menuId]);
 
       if (rows.length === 0) {
         throw new Error('Invalid resource or action');
