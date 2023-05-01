@@ -1,4 +1,5 @@
 const controllers = require('../controllers/bookingController');
+const authMiddleware = require('../middlewares/authenticate');
 const router = require('express').Router();
 
 
@@ -12,11 +13,13 @@ router.get('/localitiesonpostcode/:id', controllers.GetLocalitiesOnPostCode);
 router.get('/pincode/:id', controllers.GetPincodeById);
 router.get('/fillvalues/', controllers.FillValues);
 router.get('/fillvalues/:id', controllers.GetFillValuesByBookingId);
-router.post('/booking/', controllers.CreatBooking);
-router.put('/booking/:id', controllers.CreatBooking);
-router.get('/booking/', controllers.GetBookings);
-router.get('/booking/:id', controllers.GetBookings);
-router.delete('/booking/:id', controllers.DeleteBooking);
+router.post('/booking/', authMiddleware.isAllowed(['create'], 'booking'), controllers.CreatBooking);
+router.put('/booking/:id', authMiddleware.isAllowed(['update'], 'booking'), controllers.CreatBooking);
+router.get('/booking/', authMiddleware.isAllowed(['read'], 'booking'), controllers.GetBookings);
+router.get('/booking/:id', authMiddleware.isAllowed(['read'], 'booking'), controllers.GetBookings);
+router.delete('/booking/:id', authMiddleware.isAllowed(['delete'], 'booking'), controllers.DeleteBooking);
+router.get('/consignordetail/:mobile', controllers.GetConsignorDetail);
+router.get('/consigneedetail/:mobile', controllers.GetConsigneeDetail);
 
 
 module.exports = router

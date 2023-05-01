@@ -1,4 +1,5 @@
 const controllers = require('../controllers/companyController');
+//const authMiddleware = require('../middlewares/authenticate');
 const router = require('express').Router();
 
 router.post('/company', controllers.createCompany);

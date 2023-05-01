@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const common = require('./commonService');
+
 
 
 
@@ -6,7 +8,7 @@ exports.GetFillValues = async (userId, officeId) => {
 
     let offices = await Offices();
     let awbNos = await AwbNos(userId);
-    let vendors = await Offices();
+    let vendors = await Vendors();
     let wheelDetails = await WheelDetails();
 
     return {
@@ -37,27 +39,31 @@ exports.CreateManifest = async (data) => {
     insert into client_1001.c_manifest SET ?
      
   `
+
+  const idColumn = await common.GetId("c_manifest",'id','MI','0000000')
+
     let para = {
 
         manifest_date: new Date(data?.manifest_date),
         origin_office_id: data?.origin_office_id,
         destination_office_id: data?.destination_office_id,
-        is_received: false
+        is_received: false,
+        id : idColumn
 
     }
 
     let res = await con.query(sql, [para]);
-    let manifestId = res[0]?.insertId;
+    //let manifestId = res[0]?.insertId;
 
-    let values = data?.awb_id?.map(x=>{
-        return [manifestId,x]
+    let values = data?.booking_id?.map(x=>{
+        return [idColumn,x]
     })
 
-    let awbDetailsql = ` Insert into client_1001.c_manifest_awb_detail (manifest_id,awb_id) values ?`
+    let awbDetailsql = ` Insert into client_1001.c_manifest_booking_detail (manifest_id,booking_id) values ?`
     let awbDetailRes = await con.query(awbDetailsql,[values]);
 
     con.commit();
-    return manifestId;
+    return idColumn;
 
     }
     catch(ex){
@@ -93,17 +99,17 @@ exports.DeleteManifest = async (manifestId) => {
 
     let detailDeleteSql =
         `
-      delete from client_1001.c_manifest_detail where manifest_id = ${manifestId}
+      delete from client_1001.c_manifest_detail where manifest_id = '${manifestId}'
        
     `
     let detailDeleteAwbSql =
         `
-      delete from client_1001.c_manifest_awb_detail where manifest_id = ${manifestId}
+      delete from client_1001.c_manifest_booking_detail where manifest_id = '${manifestId}'
        
     `
     let mainDeleteSql =
         `
-      delete from client_1001.c_manifest where manifest_id = ${manifestId}
+      delete from client_1001.c_manifest where id = '${manifestId}'
        
     `
 
@@ -140,19 +146,19 @@ exports.GetManifests = async () => {
         Office.office_name AS 'origin_office',
         DOffice.office_name AS 'destination_office',
         (
-		     SELECT GROUP_CONCAT(awb.awb_prefix) AS awbno
-			  FROM client_1001.c_manifest_awb_detail as mawb
-			  INNER JOIN client_1001.c_awb_type AS awb ON awb.awb_id = mawb.awb_id
-			  WHERE mawb.manifest_id = m.manifest_id
-			  GROUP BY mawb.manifest_id
-		  ) AS 'awb_no',
+             SELECT GROUP_CONCAT(bk.awb_number) AS awbno
+              FROM client_1001.c_manifest_booking_detail as mawb
+              inner join client_1001.c_booking as bk on bk.id = mawb.booking_id
+              WHERE mawb.manifest_id = m.id
+              GROUP BY mawb.manifest_id
+          ) AS 'awb_no',
         
         ROW_NUMBER() over(Order By manifest_id )AS seq ,
          true as 'delete'
          From client_1001.c_manifest AS m
          INNER JOIN client_1001.c_office AS Office ON Office.office_id = m.origin_office_id
          INNER JOIN client_1001.c_office AS DOffice ON DOffice.office_id = m.destination_office_id
-      
+        
          WHERE  m.status = 1
          AND m.is_visible =1
        
@@ -179,21 +185,38 @@ async function Offices() {
     return offices[0]
 }
 
+async function Vendors() {
+
+    let officeSql = `
+       
+    select office_id as Id,
+    office_name as OfficeName
+    From client_1001.c_office 
+    where  status = 1
+    And is_visible =1 
+    And branch_type_id ='B12'
+    
+`
+
+    let offices = await pool.query(officeSql);
+    return offices[0]
+}
+
 async function AwbNos(userId) {
 
     let awbNosSql = `
-    Select awb.awb_id,awb.awb_type,MAX(awb.awb_prefix) AS awb_prefix
+    Select awb.awb_id,awb.awb_type,bk.awb_number AS awb_prefix,bk.id as booking_id
     from client_1001.c_awb_type as awb
     inner join client_1001.c_booking as bk on bk.awb_id = awb.awb_id
     inner join client_1001.c_office as office on office.office_id = bk.booking_office_id
     inner join client_1001.c_user as u on u.office_id = office.office_id
     left join client_1001.c_office as childOffice on childOffice.parent_office_id = office.office_id
-    left join client_1001.c_manifest_awb_detail as mawb on mawb.awb_id = awb.awb_id
-    where u.id =  ${userId}
+    left join client_1001.c_manifest_booking_detail as mawb on mawb.booking_id = bk.id
+    where u.id = ${userId}
     And  awb.status = 1
     And awb.is_visible =1 
-    AND mawb.awb_id IS null
-    GROUP BY awb.awb_id,awb.awb_type
+    AND mawb.booking_id IS null
+    group by awb.awb_id,awb.awb_type,bk.awb_number,bk.id 
     `
 
     let awbNos = await pool.query(awbNosSql);

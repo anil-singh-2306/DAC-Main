@@ -18,6 +18,8 @@ exports.login = async (req, res, next) => {
             officeId: user.office_id
         };
         req.session.save();
+        // send response with session cookie
+        res.cookie('connect.sid', req.sessionID);
         //res.cookie('refreshToken', refreshToken, { httpOnly: true });
         res.status(200).json({
             accessToken: accessToken,
@@ -26,7 +28,8 @@ exports.login = async (req, res, next) => {
             lastname:user.last_name,
             email:user.email,
             role: user.role_name,
-            img:user.profile_picture,
+            roleid: user.role_id,
+            img:`client_${client_id}/user/${user.profile_picture}`,
             brandlogo:user.logo,
             brandname:user.name
         });

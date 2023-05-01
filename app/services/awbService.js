@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const common = require('./commonService');
 const { format } = require('date-fns');
 
 exports.createAwbType = async (req, data, id) => {
@@ -9,7 +10,7 @@ exports.createAwbType = async (req, data, id) => {
     sql = `
            Update client_1001.c_awb_type 
            set ?
-           where awb_id = ${id}
+           where awb_id = '${id}'
       `
 
     para = {
@@ -21,12 +22,14 @@ exports.createAwbType = async (req, data, id) => {
   }
   else {
 
+    const idColumn = await common.GetId("c_awb_type",'awb_id','AWB','00')
     sql = `INSERT INTO client_1001.c_awb_type SET ?`;
 
     para = {
       awb_type: data.awb_type,
       awb_prefix: data.awb_prefix,
       payment_mode_id: data.payment_mode_id,
+      awb_id:idColumn
     }
   }
 
@@ -40,21 +43,23 @@ exports.getAwbType = async (req, id) => {
     'awb_type as `AwbType`',
     'awb_id as `id`',
     'awb_prefix as `AwbPrefix`',
-    'payment_mode_id as `PaymentModeId`',
-    'status as `Status`',
-    'created_at as `CreatedAt`',
+    'pm.payment_mode_id as `PaymentModeId`',
+    'pm.payment_mode_name as `PaymentMode`',
+    'awb.status as `Status`',
+    'awb.created_at as `CreatedAt`',
   ];
   let sql;
   let para;
   sql = `  select  ROW_NUMBER() over(Order By awb_id )AS seq  , ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_type  
-           where status = 1
-           And is_visible =1 
+           from client_1001.c_awb_type  awb
+           inner join client_1001.c_payment_mode pm on pm.payment_mode_id = awb.payment_mode_id
+           where awb.status = 1
+           And awb.is_visible =1 
            `
   if (id) {
 
-    sql += ` And awb_id = ${id}`
+    sql += ` And awb_id = '${id}'`
 
   }
 
@@ -73,7 +78,7 @@ exports.deleteAwbType = async (req, id) => {
   }
   sql = `  Delete  
            from client_1001.c_awb_type  
-           where awb_id = ${id}
+           where awb_id = '${id}'
            `
 
   const result = await pool.query(sql);
@@ -100,12 +105,28 @@ exports.getAWBFillValues = async () => {
 
 exports.getSalesFillValues = async (req) => {
 
-  const offices = [
-    {
-      officeId: 1,
-      office: 'Head Office'
-    }
-  ]
+  const officeSql = `
+  select * from client_1001.c_office s
+  where s.status = 1
+  And s.is_visible =1 
+  `
+
+  const officesres = await pool.query(officeSql);
+
+  const offices = officesres[0]?.map(x=>{
+     let obj ={
+      officeId:x.office_id,
+      office:x.office_name
+     }
+
+     return obj;
+  }) 
+  // const offices = [
+  //   {
+  //     officeId: 1,
+  //     office: 'Head Office'
+  //   }
+  // ]
   const awbtypes = await this.getAwbType();
 
   const filvalues = {
@@ -122,28 +143,29 @@ exports.createAwbSales = async (req, data, id) => {
   let para;
   if (id) {
     sql = `
-           Update client_1001.c_awb_sales 
+           Update client_1001.c_awb_sale_rate 
            set ?
-           where id = ${Number(id)}
+           where sale_rate_id = '${id}'
       `
 
     para = {
       awb_id: data.awbtype,
       office_id: data.office,
-      sales_rate: data.rate,
+      sale_rate: data.rate,
       valid_till: new Date(data.validtill),
       updated_at: new Date()
     }
   }
   else {
-
-    sql = `INSERT INTO client_1001.c_awb_sales SET ?`;
+    const idColumn = await common.GetId("c_awb_sale_rate",'sale_rate_id','SR','000000')
+    sql = `INSERT INTO client_1001.c_awb_sale_rate SET ?`;
 
     para = {
       awb_id: data.awbtype,
       office_id: data.office,
-      sales_rate: data.rate,
-      valid_till: new Date(data.validtill)
+      sale_rate: data.rate,
+      valid_till: new Date(data.validtill),
+      sale_rate_id : idColumn
     }
   }
 
@@ -154,26 +176,28 @@ exports.createAwbSales = async (req, data, id) => {
 exports.getAwbSales = async (req, id) => {
 
   const col = [
-    'id as `id`',
+    'sale_rate_id as `id`',
     's.awb_id as `AwbId`',
-    'office_id as `OfficeId`',
-    'sales_rate as `SalesRate`',
+    'office.office_id as `OfficeId`',
+    'sale_rate as `SalesRate`',
     'valid_till as `ValidTill`',
+    'valid_till as `ValidTillDate`',
     's.status as `Status`',
     's.created_at as `CreatedAt`',
   ];
   let sql;
-  sql = `  select  ROW_NUMBER() over(Order By s.id )AS seq ,t.awb_type as AwbType , 'Head Office' as office,
+  sql = `  select  ROW_NUMBER() over(Order By s.id )AS seq ,t.awb_type as AwbType , office.office_name as office,
             ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_sales s
+           from client_1001.c_awb_sale_rate s
            inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
+           inner join client_1001.c_office office on office.office_id = s.office_id
            where s.status = 1
            And s.is_visible =1 
            `
   if (id) {
 
-    sql += ` And id = ${id}`
+    sql += ` And id = '${id}'`
 
   }
 
@@ -192,8 +216,8 @@ exports.deleteAwbSales = async (req, id) => {
     throw 'enable to delete'
   }
   sql = `  Delete  
-           from client_1001.c_awb_sales 
-           where id = ${Number(id)}
+           from client_1001.c_awb_sale_rate 
+           where sale_rate_id = '${id}'
            `
 
   const result = await pool.query(sql);
@@ -203,7 +227,7 @@ exports.deleteAwbSales = async (req, id) => {
 
 /// Purchase ---
 
-exports.getPurchaseFillValues = async () => {
+exports.getPurchaseFillValues = async (officeId) => {
 
 
   const officeSql = `
@@ -222,16 +246,34 @@ exports.getPurchaseFillValues = async () => {
 
      return obj;
   }) 
-  const vendors = [
-    {
-      vendorId: 1,
-      vendor: 'Sample vendor 1'
-    }
-  ]
+
+  const vendorSql = `
+  SELECT * FROM client_1001.c_office
+WHERE branch_type_id ='B12'
+  `
+
+  const vendorsres = await pool.query(vendorSql);
+
+  const vendors = vendorsres[0]?.map(x=>{
+     let obj ={
+      officeId:x.office_id,
+      office:x.office_name
+     }
+
+     return obj;
+  }) 
+  // const vendors = [
+  //   {
+  //     vendorId: 1,
+  //     vendor: 'Sample vendor 1'
+  //   }
+  // ]
+
+  
   const awbtypes = await this.getAwbType();
 
   const defaultvalues = {
-    office: 1
+    office: officeId
   }
 
   const filvalues = {
@@ -252,7 +294,7 @@ exports.createAwbPurchase = async (req, data, id) => {
     sql = `
            Update client_1001.c_awb_purchase 
            set ?
-           where id = ${Number(id)}
+           where awb_purchase_id = '${id}'
       `
 
     para = {
@@ -268,6 +310,7 @@ exports.createAwbPurchase = async (req, data, id) => {
   }
   else {
 
+    const idColumn = await common.GetId("c_awb_purchase",'awb_purchase_id','PU','0000000')
     sql = `INSERT INTO client_1001.c_awb_purchase SET ?`;
 
     para = {
@@ -279,6 +322,7 @@ exports.createAwbPurchase = async (req, data, id) => {
       quantity: data.quantity,
       end_no: data.endno,
       purchase_at: new Date(data.purchasedate),
+      awb_purchase_id:idColumn
     }
   }
 
@@ -289,12 +333,13 @@ exports.createAwbPurchase = async (req, data, id) => {
 exports.getAwbPurchase = async (req, id) => {
 
   const col = [
-    'id as `id`',
+    'awb_purchase_id as `id`',
     's.awb_id as `AwbId`',
-    'office_id as `OfficeId`',
+    'office.office_id as `OfficeId`',
     'vendor_id as `VendorId`',
     'vendor_rate as `VendorRate`',
     'purchase_at as `PurchaseDate`',
+    'purchase_at as `PurchaseDateTime`',
     'quantity as `Quantity`',
     'starting_no as `StartingNo`',
     'end_no as `EndNo`',
@@ -303,18 +348,20 @@ exports.getAwbPurchase = async (req, id) => {
   ];
   let sql;
   sql = `  select  ROW_NUMBER() over(Order By s.id )AS seq ,t.awb_type as AwbType , 
-           'Head Office' as office,
-           'Sample Vendor 1' as vendor,
+           office.office_name as office,
+           vendor.office_name as vendor,
             ${col},
            true as 'delete', true as 'edit'
            from client_1001.c_awb_purchase s
            inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
+           inner join client_1001.c_office office on office.office_id = s.office_id
+           inner join client_1001.c_office vendor on vendor.office_id = s.vendor_id
            where s.status = 1
            And s.is_visible =1 
            `
   if (id) {
 
-    sql += ` And id = ${id}`
+    sql += ` And awb_purchase_id = '${id}'`
 
   }
 
@@ -334,7 +381,7 @@ exports.deleteAwbPurchase = async (req, id) => {
   }
   sql = `  Delete  
            from client_1001.c_awb_purchase
-           where id = ${Number(id)}
+           where awb_purchase_id = '${id}'
            `
 
   const result = await pool.query(sql);
@@ -348,7 +395,7 @@ exports.getIssueFillValues = async (officeId) => {
   let isHeadOfficeSql = `
      select 1
      From client_1001.c_office 
-     where office_id = ${officeId}
+     where office_id = '${officeId}'
      And parent_office_id is null
   `
   let headOfficeResult = await pool.query(isHeadOfficeSql);
@@ -386,9 +433,14 @@ exports.getIssueFillValues = async (officeId) => {
   }
 
   const sqlStartingNo = `
-      Select p.awb_id as AwbId, p.id as PurchaseId, p.starting_no as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
-      from client_1001.c_awb_purchase p
-      inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
+    Select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, p.starting_no as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
+    from client_1001.c_awb_purchase p
+    inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
+    left join client_1001.c_awb_issue as iss on iss.starting_no = p.starting_no 
+    where iss.id is null;
+    
+
+  
   `
 
   const startingNos = await pool.query(sqlStartingNo);
@@ -426,19 +478,22 @@ exports.createAwbIssue = async (req, data, id) => {
 
   let existAWBIssue = `
   
-      select 1
+      select 1 
       from client_1001.c_awb_issue
-      where awb_id = ${data.awbtype}
+      where awb_id = '${data.awbtype}'
+      And awb_purchase_id ='${data.purchaseid}'
+      and starting_no = ${data.startingno}
+      And end_no = ${data.endno}
   `
 
   if (id) {
     sql = `
            Update client_1001.c_awb_issue 
            set ?
-           where id = ${Number(id)}
+           where awb_issue_id = '${id}'
       `
 
-      existAWBIssue += ` And issue_id <> ${id}`
+      existAWBIssue += ` And awb_issue_id <> '${id}'`
 
       para = {
         awb_id: data.awbtype,
@@ -456,6 +511,7 @@ exports.createAwbIssue = async (req, data, id) => {
   }
   else {
 
+    const idColumn = await common.GetId("c_awb_issue",'awb_issue_id','AI','0000000')
     sql = `INSERT INTO client_1001.c_awb_issue SET ?`;
 
     para = {
@@ -469,6 +525,7 @@ exports.createAwbIssue = async (req, data, id) => {
       amount_received:data.amountreceived,
       awb_purchase_id:data.purchaseid,
       issue_date: new Date(data.issuedate),
+      awb_issue_id:idColumn
     }
   }
 
@@ -483,7 +540,7 @@ exports.createAwbIssue = async (req, data, id) => {
 exports.getAwbIssue = async (req, id) => {
 
   const col = [
-    's.id as `id`',
+    's.awb_issue_id as `id`',
     's.awb_id as `AwbId`',
     's.office_id as `OfficeId`',
     's.receiver_office_id as `ReceiverOfficeId`',
@@ -498,21 +555,23 @@ exports.getAwbIssue = async (req, id) => {
   ];
   let sql;
   sql = `  select  ROW_NUMBER() over(Order By s.id )AS seq ,t.awb_type as AwbType , 
-           'Head Office' as Office,
-           'Head Office' as ReceiverOffice,
+            office.office_name as Office,
+           roffice.office_name as ReceiverOffice,
             IFNULL(p.vendor_rate,0) as MinRate,
             p.id as PurchaseId,
             ${col},
            true as 'delete', true as 'edit'
            from client_1001.c_awb_issue s
            inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
-           left join client_1001.c_awb_purchase p on p.id = s.awb_purchase_id
+           left join client_1001.c_awb_purchase p on p.awb_purchase_id = s.awb_purchase_id
+           inner join client_1001.c_office roffice on roffice.office_id = s.receiver_office_id
+           inner join client_1001.c_office office on office.office_id = s.office_id
            where s.status = 1
            And s.is_visible =1 
            `
   if (id) {
 
-    sql += ` And id = ${id}`
+    sql += ` And awb_issue_id = '${id}'`
 
   }
 
@@ -532,7 +591,7 @@ exports.deleteAwbIssue = async (req, id) => {
   }
   sql = `  Delete  
            from client_1001.c_awb_issue 
-           where id = ${Number(id)}
+           where awb_issue_id = '${id}'
            `
 
   const result = await pool.query(sql);
