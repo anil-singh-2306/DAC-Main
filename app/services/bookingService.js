@@ -25,7 +25,7 @@ exports.SearchAWBNumber = async (str) => {
         'awb.awb_id as AwbId',
         'isu.awb_issue_id as IssueId',
         'isu.awb_purchase_id as PurchaseId',
-        'isu.office_id as OfficeId',
+        'isu.receiver_office_id as OfficeId',
         'awb.payment_mode_id as PaymentModeId'
     ]
     let sql = `
@@ -59,6 +59,7 @@ exports.SearchPinCode = async (str, id) => {
             From dac.da_post_code 
             where status = 1 And is_visible = 1
             And ${str ? `post_code like '%${str}%'` : `post_code_id = '${id}'`}
+            Limit 20
        `
     const result = await pool.query(sql);
     return result[0];
