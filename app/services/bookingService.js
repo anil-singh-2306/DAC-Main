@@ -248,7 +248,7 @@ exports.GetPincodeById = async (id) => {
 }
 
 // fill values dependent
-exports.GetFillValuesByBookingId = async (id) => {
+exports.GetFillValuesByBookingId = async (id,officeId) => {
 
     let sql = ` select * from client_1001.c_booking where id = '${id}'`;
     const result = await pool.query(sql);
@@ -260,6 +260,8 @@ exports.GetFillValuesByBookingId = async (id) => {
     if (consignorResult[0].length > 0) {
         consignorRow = consignorResult[0][0];
     }
+
+ 
 
     const awb_id = row.awb_id;
     const booking_office_id = row.booking_office_id;
@@ -281,7 +283,8 @@ exports.GetFillValuesByBookingId = async (id) => {
         consigneeCities: consignee_city_id ? await this.GetCityById(consignee_city_id) : [],
         consigneeStates: consignee_state_id ? await this.GetStateById(consignee_state_id) : [],
         consignoreCities: consignor_city_id ? await this.GetCityById(consignor_city_id) : [],
-        consignoreStates: consignor_state_id ? await this.GetStateById(consignor_state_id) : [],
+        consignoreStates: consignor_state_id ? await this.GetStateById(consignor_state_id) : []
+        
     }
 
     return data;
@@ -345,6 +348,19 @@ exports.GetConsingmentTypes = async () => {
     `
     const result = await pool.query(sql);
     return result[0];
+}
+exports.IsHeadOffice = async (officeId) => {
+
+    let isHeadOfficeSql = `
+    select 1
+    From client_1001.c_office 
+    where office_id = '${officeId}'
+    And parent_office_id is null
+    `
+
+    let headOfficeResult = await pool.query(isHeadOfficeSql);
+    let isHeadOffice = (headOfficeResult[0].length > 0);
+    return isHeadOffice
 }
 //=================================
 

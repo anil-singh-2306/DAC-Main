@@ -29,3 +29,8 @@ function setValue(bufferZeros,value){
     return d+value;
 
 }
+
+ exports.applicationException= function(message,data){
+    this.message = message;
+    this.data = data;
+}

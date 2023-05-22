@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 //console.log('Static files directory:', path.join(__dirname, '..', '..', 'images'));
 app.use('/images', express.static(path.join(__dirname, '..', '..', 'images/')));
 
-app.use('/awbsearch', require('./awbSearchRouter'));
+app.use('/awbsearch', require('./awbRouter'));
 app.use('/auth', require('./authRouter'));
 app.use('/image', require('./imageRouter'));
 app.use('/companies', require('./companyRouter'));
