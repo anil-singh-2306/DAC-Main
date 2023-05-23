@@ -20,7 +20,10 @@ exports.createBusiness = async (req, res, next) => {
 
 exports.getBusinesses = async (req, res, next) => {
   try {
-    const result = await service.getBusinesses(req);
+
+    const session = req.session.userSession;
+
+    const result = await service.getBusinesses(req, session);
     res.status(200).json({
       success: true,
       data: result
@@ -37,7 +40,9 @@ exports.getBusinesses = async (req, res, next) => {
 
 exports.getBusiness = async (req, res, next) => {
   try {
-    const result = await service.getBusiness(req, req.params.id);
+    const session = req.session.userSession;
+
+    const result = await service.getBusiness(req, req.params.id, session);
     res.status(200).json({
       success: true,
       data: result
@@ -54,7 +59,9 @@ exports.getBusiness = async (req, res, next) => {
 
 exports.updateBusiness = async (req, res, next) => {
   try {
-    const result = await service.updateBusiness(req, req.params.id, req.body);
+    const session = req.session.userSession;
+
+    const result = await service.updateBusiness(req, req.params.id, req.body, session);
     res.status(200).json({
       success: true,
       data: result
@@ -71,7 +78,9 @@ exports.updateBusiness = async (req, res, next) => {
 
 exports.deleteBusiness = async (req, res, next) => {
   try {
-    const result = await service.deleteBusiness(req, req.params.id);
+    const session = req.session.userSession;
+
+    const result = await service.deleteBusiness(req, req.params.id, session);
     res.status(200).json({
       success: true,
       data: result
@@ -106,7 +115,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.getBranches = async (req, res, next) => {
     try {
-      const result = await service.getBranches(req);
+      const session = req.session.userSession;
+
+      const result = await service.getBranches(req, session);
       res.status(200).json({
         success: true,
         data: result
@@ -123,7 +134,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.getBranch = async (req, res, next) => {
     try {
-      const result = await service.getBranch(req, req.params.id);
+      const session = req.session.userSession;
+
+      const result = await service.getBranch(req, req.params.id, session);
       res.status(200).json({
         success: true,
         data: result
@@ -140,7 +153,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.updateBranch = async (req, res, next) => {
     try {
-      const result = await service.updateBranch(req, req.params.id, req.body);
+      const session = req.session.userSession;
+
+      const result = await service.updateBranch(req, req.params.id, req.body, session);
       res.status(200).json({
         success: true,
         data: result
@@ -157,7 +172,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.deleteBranch = async (req, res, next) => {
     try {
-      const result = await service.deleteBranch(req, req.params.id);
+      const session = req.session.userSession;
+
+      const result = await service.deleteBranch(req, req.params.id, session);
       res.status(200).json({
         success: true,
         data: result
@@ -210,7 +227,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.getOffice = async (req, res, next) => {
     try {
-      const result = await service.getOffice(req, req.params.id);
+      const session = req.session.userSession;
+
+      const result = await service.getOffice(req, req.params.id, session);
       res.status(200).json({
         success: true,
         data: result
@@ -227,7 +246,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.updateOffice = async (req, res, next) => {
     try {
-      const result = await service.updateOffice(req, req.params.id, req.body);
+      const session = req.session.userSession;
+
+      const result = await service.updateOffice(req, req.params.id, req.body, session);
       res.status(200).json({
         success: true,
         data: result
@@ -244,7 +265,9 @@ exports.createBranch = async (req, res, next) => {
   
   exports.deleteOffice = async (req, res, next) => {
     try {
-      const result = await service.deleteOffice(req, req.params.id);
+      const session = req.session.userSession;
+
+      const result = await service.deleteOffice(req, req.params.id, session);
       res.status(200).json({
         success: true,
         data: result
