@@ -1,5 +1,6 @@
 
 const service = require('../services/awbService');
+const common = require('../services/commonService');
 exports.createAwbType = async (req, res, next) => {
   try {
     const result = await service.createAwbType(req, req.body, req.params.id);
@@ -170,6 +171,14 @@ exports.createAwbPurchase = async (req, res, next) => {
     });
   } catch (err) {
    console.error(err)
+
+   if(err instanceof common.applicationException){
+    return  res.status(400).json({
+      success: false,
+      message: err.message
+    });
+   }
+
     res.status(400).json({
       success: false,
       message: "Unable to add/update AWB Purchase."

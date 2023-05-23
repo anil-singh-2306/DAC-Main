@@ -290,6 +290,15 @@ exports.createAwbPurchase = async (req, data, id) => {
 
   let sql;
   let para;
+  let startingOrEndExistsSql =`
+  SELECT 1
+  FROM client_1001.c_awb_purchase AS awbp
+  WHERE ( ${data.startingno} BETWEEN awbp.starting_no AND awbp.end_no ) OR ( ${data.endno}  BETWEEN awbp.starting_no AND awbp.end_no)
+  `
+  let startingOrEndExistsresult = await pool.query(startingOrEndExistsSql);
+  if(startingOrEndExistsresult[0].length>0){
+    throw new common.applicationException('This series already purchased.',null)
+  }
   if (id) {
     sql = `
            Update client_1001.c_awb_purchase 
@@ -307,7 +316,7 @@ exports.createAwbPurchase = async (req, data, id) => {
       end_no: data.endno,
       updated_at: new Date()
     }
-  }
+  } 
   else {
 
     const idColumn = await common.GetId("c_awb_purchase",'awb_purchase_id','PU','0000000')

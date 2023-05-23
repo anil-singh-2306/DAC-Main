@@ -11,6 +11,16 @@ exports.GetFillValues = async (userId, officeId) => {
     let vendors = await Vendors();
     let wheelDetails = await WheelDetails();
 
+    let isHeadOfficeSql = `
+    select 1
+    From client_1001.c_office 
+    where office_id = '${officeId}'
+    And parent_office_id is null
+    `
+
+    let headOfficeResult = await pool.query(isHeadOfficeSql);
+    let isHeadOffice = (headOfficeResult[0].length > 0)
+
     return {
 
         offices,
@@ -19,7 +29,8 @@ exports.GetFillValues = async (userId, officeId) => {
             officeId
         },
         vendors,
-        wheelDetails
+        wheelDetails,
+        isHeadOffice
 
     }
 
@@ -208,9 +219,8 @@ async function AwbNos(userId) {
     Select awb.awb_id,awb.awb_type,bk.awb_number AS awb_prefix,bk.id as booking_id
     from client_1001.c_awb_type as awb
     inner join client_1001.c_booking as bk on bk.awb_id = awb.awb_id
-    inner join client_1001.c_office as office on office.office_id = bk.booking_office_id
-    inner join client_1001.c_user as u on u.office_id = office.office_id
-    left join client_1001.c_office as childOffice on childOffice.parent_office_id = office.office_id
+    INNER join client_1001.c_office as office on office.office_id = bk.booking_office_id
+    INNER join client_1001.c_user as u on u.office_id = office.office_id OR u.office_id = office.parent_office_id
     left join client_1001.c_manifest_booking_detail as mawb on mawb.booking_id = bk.id
     where u.id = ${userId}
     And  awb.status = 1

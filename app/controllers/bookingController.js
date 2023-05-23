@@ -138,13 +138,15 @@ exports.FillValues =async (req, res, next) => {
     const paymentModes = await service.GetPaymentModes();
     const consingmentTypes = await service.GetConsingmentTypes();
     const gstRates = await service.GetGstRates();
+    const isHeadOffice = await service.IsHeadOffice(req.session.userSession.officeId);
 
     const result={
       deliveryModes,
       serviceMode,
       paymentModes,
       consingmentTypes,
-      gstRates
+      gstRates,
+      isHeadOffice
     }
     res.status(201).json({
       success: true,
@@ -161,7 +163,7 @@ exports.FillValues =async (req, res, next) => {
 exports.GetFillValuesByBookingId =async (req, res, next) => {
 
   try {
-    const result = await service.GetFillValuesByBookingId( req.params.id);
+    const result = await service.GetFillValuesByBookingId( req.params.id,req.session.userSession.officeId);
     res.status(201).json({
       success: true,
       data: result
