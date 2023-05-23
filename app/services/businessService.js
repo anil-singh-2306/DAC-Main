@@ -10,6 +10,7 @@ async function checkIfExists(table_name, col_name, col_value) {
 exports.createBusiness = async (req, data, session) => {
   
   const clientId = session?.clientId;
+  const userId = session?.userId;
 
   if (clientId) {
     const isExists = await checkIfExists(`client_${clientId}.c_business`, 'business_type', data.business_type);
@@ -26,6 +27,7 @@ exports.createBusiness = async (req, data, session) => {
     const nextId = 'A' + String(nextNumericId).padStart(2, '0');
 
     data.business_type_id = nextId;
+    data.created_by = userId;
 
     const sql = `INSERT INTO client_${clientId}.c_business SET ?`;
     const result = await pool.query(sql, [data]);
@@ -33,8 +35,11 @@ exports.createBusiness = async (req, data, session) => {
   }
 };
 
-exports.getBusinesses = async (req) => {
-  const sql = `SELECT * FROM client_1001.c_business`;
+exports.getBusinesses = async (req, session) => {
+  const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  const sql = `SELECT * FROM client_${clientId}.c_business`;
   const result = await pool.query(sql);
 
   const rows = result?.[0] || [];
@@ -71,20 +76,32 @@ exports.getBusinesses = async (req) => {
   return formattedRows;
 };
 
-exports.getBusiness = async (req, id) => {
-  const sql = `SELECT * FROM client_1001.c_business WHERE business_type_id = ?`;
+exports.getBusiness = async (req, id, session) => {
+  const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  const sql = `SELECT * FROM client_${clientId}.c_business WHERE business_type_id = ?`;
   const result = await pool.query(sql, [id]);
   return result[0];
 };
 
-exports.updateBusiness = async (req, id, data) => {
-  const sql = `UPDATE client_1001.c_business SET ? WHERE business_type_id = ?`;
+exports.updateBusiness = async (req, id, data, session) => {
+
+  const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  data.updated_by = userId;
+
+  const sql = `UPDATE client_${clientId}.c_business SET ? WHERE business_type_id = ?`;
   const result = await pool.query(sql, [data, id]);
   return result;
 };
 
-exports.deleteBusiness = async (req, id) => {
-  const sql = `DELETE FROM client_1001.c_business WHERE business_type_id = ?`;
+exports.deleteBusiness = async (req, id, session) => {
+  const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  const sql = `DELETE FROM client_${clientId}.c_business WHERE business_type_id = ?`;
   const result = await pool.query(sql, [id]);
   return result;
 };
@@ -92,6 +109,7 @@ exports.deleteBusiness = async (req, id) => {
 exports.createBranch = async (req, data, session) => {
 
   const clientId = session?.clientId;
+  const userId = session?.userId;
 
   if (clientId) {
     const isExists = await checkIfExists(`client_${clientId}.c_branch`, 'branch_type', data.branch_type);
@@ -108,6 +126,7 @@ exports.createBranch = async (req, data, session) => {
     const nextId = 'B' + String(nextNumericId).padStart(2, '0');
 
     data.branch_type_id = nextId;
+    data.created_by = userId;
 
     const sql = `INSERT INTO client_${clientId}.c_branch SET ?`;
     const result = await pool.query(sql, [data]);
@@ -115,8 +134,11 @@ exports.createBranch = async (req, data, session) => {
   }
 };
   
-  exports.getBranches = async (req) => {
-    const sql = `SELECT * FROM client_1001.c_branch`;
+  exports.getBranches = async (req, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+    const sql = `SELECT * FROM client_${clientId}.c_branch`;
     const result = await pool.query(sql);
 
   const rows = result?.[0] || [];
@@ -153,20 +175,31 @@ exports.createBranch = async (req, data, session) => {
   return formattedRows;
   };
   
-  exports.getBranch = async (req, id) => {
-    const sql = `SELECT * FROM client_1001.c_branch WHERE branch_type_id = ?`;
+  exports.getBranch = async (req, id, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+    const sql = `SELECT * FROM client_${clientId}.c_branch WHERE branch_type_id = ?`;
     const result = await pool.query(sql, [id]);
     return result[0];
   };
   
-  exports.updateBranch = async (req, id, data) => {
-    const sql = `UPDATE client_1001.c_branch SET ? WHERE branch_type_id = ?`;
+  exports.updateBranch = async (req, id, data, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  data.updated_by = userId;
+
+    const sql = `UPDATE client_${clientId}.c_branch SET ? WHERE branch_type_id = ?`;
     const result = await pool.query(sql, [data, id]);
     return result;
   };
   
-  exports.deleteBranch = async (req, id) => {
-    const sql = `DELETE FROM client_1001.c_branch WHERE branch_type_id = ?`;
+  exports.deleteBranch = async (req, id, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+    const sql = `DELETE FROM client_${clientId}.c_branch WHERE branch_type_id = ?`;
     const result = await pool.query(sql, [id]);
     return result;
   };
@@ -174,6 +207,7 @@ exports.createBranch = async (req, data, session) => {
   exports.createOffice = async (req, data, session) => {
 
     const clientId = session?.clientId;
+  const userId = session?.userId;
   
     if (clientId) {
       const isExists = await checkIfExists(`client_${clientId}.c_office`, 'office_name', data.office_name);
@@ -190,6 +224,7 @@ exports.createBranch = async (req, data, session) => {
       const nextId = 'O' + String(nextNumericId).padStart(4, '0');
   
       data.office_id = nextId;
+      data.created_by = userId;
   
       const sql = `INSERT INTO client_${clientId}.c_office SET ?`;
       const result = await pool.query(sql, [data]);
@@ -207,7 +242,7 @@ exports.createBranch = async (req, data, session) => {
                 WHERE parent_office_id = (SELECT office_id FROM client_${clientId}.c_user WHERE id = ?)`;
     result = await pool.query(sql, [userId]);
   } else {
-    const sql = `SELECT * FROM client_1001.c_office`;
+    const sql = `SELECT * FROM client_${clientId}.c_office`;
     result = await pool.query(sql);
   }
 
@@ -249,20 +284,31 @@ exports.createBranch = async (req, data, session) => {
 };
 
   
-  exports.getOffice = async (req, id) => {
-    const sql = `SELECT * FROM client_1001.c_office WHERE office_id = ?`;
+  exports.getOffice = async (req, id, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+    const sql = `SELECT * FROM client_${clientId}.c_office WHERE office_id = ?`;
     const result = await pool.query(sql, [id]);
     return result[0];
   };
   
-  exports.updateOffice = async (req, id, data) => {
-    const sql = `UPDATE client_1001.c_office SET ? WHERE office_id = ?`;
+  exports.updateOffice = async (req, id, data, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+  data.updated_by = userId;
+
+    const sql = `UPDATE client_${clientId}.c_office SET ? WHERE office_id = ?`;
     const result = await pool.query(sql, [data, id]);
     return result;
   };
   
-  exports.deleteOffice = async (req, id) => {
-    const sql = `DELETE FROM client_1001.c_office WHERE office_id = ?`;
+  exports.deleteOffice = async (req, id, session) => {
+    const clientId = session?.clientId;
+  const userId = session?.userId;
+
+    const sql = `DELETE FROM client_${clientId}.c_office WHERE office_id = ?`;
     const result = await pool.query(sql, [id]);
     return result;
   };
