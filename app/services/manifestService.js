@@ -6,10 +6,10 @@ const common = require('./commonService');
 
 exports.GetFillValues = async (userId, officeId,clientId) => {
 
-    let offices = await Offices();
-    let awbNos = await AwbNos(userId);
-    let vendors = await Vendors();
-    let wheelDetails = await WheelDetails();
+    let offices = await Offices(clientId);
+    let awbNos = await AwbNos(userId,clientId);
+    let vendors = await Vendors(clientId);
+    let wheelDetails = await WheelDetails(clientId);
 
     let isHeadOfficeSql = `
     select 1
@@ -180,7 +180,7 @@ exports.GetManifests = async (clientId) => {
 
 }
 
-async function Offices() {
+async function Offices( clientId) {
 
     let officeSql = `
        
@@ -196,7 +196,7 @@ async function Offices() {
     return offices[0]
 }
 
-async function Vendors() {
+async function Vendors( clientId) {
 
     let officeSql = `
        
@@ -213,7 +213,7 @@ async function Vendors() {
     return offices[0]
 }
 
-async function AwbNos(userId) {
+async function AwbNos(userId ,clientId) {
 
     let awbNosSql = `
     Select awb.awb_id,awb.awb_type,bk.awb_number AS awb_prefix,bk.id as booking_id
@@ -236,7 +236,7 @@ async function AwbNos(userId) {
 
 }
 
-async function WheelDetails(){
+async function WheelDetails( clientId) {
     let sql = `
       select *
       From client_${clientId}.c_wheel_detail

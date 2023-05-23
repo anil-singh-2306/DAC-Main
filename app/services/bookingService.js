@@ -275,15 +275,15 @@ exports.GetFillValuesByBookingId = async (id,officeId,clientId) => {
     const consignor_state_id = consignorRow?.consignor_state_id;
 
     let data = {
-        originPinCode: await this.GetPincodeById(origin_pincode_id),
-        destinationPinCode: await this.GetPincodeById(destination_pincode_id),
-        offices: await this.GetOfficeById(booking_office_id),
-        localities: await this.GetLocalitiesById(destination_locality_id),
-        destinationCities: await placeService.getCity(destionation_city_id),
-        consigneeCities: consignee_city_id ? await this.GetCityById(consignee_city_id) : [],
-        consigneeStates: consignee_state_id ? await this.GetStateById(consignee_state_id) : [],
-        consignoreCities: consignor_city_id ? await this.GetCityById(consignor_city_id) : [],
-        consignoreStates: consignor_state_id ? await this.GetStateById(consignor_state_id) : []
+        originPinCode: await this.GetPincodeById(origin_pincode_id,clientId),
+        destinationPinCode: await this.GetPincodeById(destination_pincode_id,clientId),
+        offices: await this.GetOfficeById(booking_office_id,clientId),
+        localities: await this.GetLocalitiesById(destination_locality_id,clientId),
+        destinationCities: await placeService.getCity(destionation_city_id,clientId),
+        consigneeCities: consignee_city_id ? await this.GetCityById(consignee_city_id,clientId) : [],
+        consigneeStates: consignee_state_id ? await this.GetStateById(consignee_state_id,clientId) : [],
+        consignoreCities: consignor_city_id ? await this.GetCityById(consignor_city_id,clientId) : [],
+        consignoreStates: consignor_state_id ? await this.GetStateById(consignor_state_id,clientId) : []
         
     }
 
