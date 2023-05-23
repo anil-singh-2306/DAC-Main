@@ -2,7 +2,7 @@ const service = require('../services/manifestService');
 exports.GetFillValues = async (req, res, next) => {
   try {
     const session = req.session.userSession;
-    const result = await service.GetFillValues(session.userId,session.officeId);
+    const result = await service.GetFillValues(session.userId,session.officeId,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -17,7 +17,7 @@ exports.GetFillValues = async (req, res, next) => {
 };
 exports.CreateManifest = async (req, res, next) => {
   try {
-    const result = await service.CreateManifest(req.body);
+    const result = await service.CreateManifest(req.body,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: {
@@ -34,7 +34,7 @@ exports.CreateManifest = async (req, res, next) => {
 };
 exports.CreateManifestDetail = async (req, res, next) => {
   try {
-    const result = await service.CreateManifestDetail(req.body, req.params.id);
+    const result = await service.CreateManifestDetail(req.body, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -49,7 +49,7 @@ exports.CreateManifestDetail = async (req, res, next) => {
 };
 exports.DeleteManifest = async (req, res, next) => {
   try {
-    const result = await service.DeleteManifest(req.params.id);
+    const result = await service.DeleteManifest(req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -64,7 +64,7 @@ exports.DeleteManifest = async (req, res, next) => {
 };
 exports.GetManifests = async (req, res, next) => {
   try {
-    const result = await service.GetManifests();
+    const result = await service.GetManifests(req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result

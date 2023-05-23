@@ -2,13 +2,13 @@ const pool = require('../config/db');
 const common = require('./commonService');
 const { format } = require('date-fns');
 
-exports.createAwbType = async (req, data, id) => {
+exports.createAwbType = async (req, data, id,clientId) => {
 
   let sql;
   let para;
   if (id) {
     sql = `
-           Update client_1001.c_awb_type 
+           Update client_${clientId}c_awb_type 
            set ?
            where awb_id = '${id}'
       `
@@ -23,7 +23,7 @@ exports.createAwbType = async (req, data, id) => {
   else {
 
     const idColumn = await common.GetId("c_awb_type",'awb_id','AWB','00')
-    sql = `INSERT INTO client_1001.c_awb_type SET ?`;
+    sql = `INSERT INTO client_${clientId}c_awb_type SET ?`;
 
     para = {
       awb_type: data.awb_type,
@@ -37,7 +37,7 @@ exports.createAwbType = async (req, data, id) => {
   return result[0];
 };
 
-exports.getAwbType = async (req, id) => {
+exports.getAwbType = async (req, id,clientId) => {
 
   const col = [
     'awb_type as `AwbType`',
@@ -52,8 +52,8 @@ exports.getAwbType = async (req, id) => {
   let para;
   sql = `  select  ROW_NUMBER() over(Order By awb_id )AS seq  , ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_type  awb
-           inner join client_1001.c_payment_mode pm on pm.payment_mode_id = awb.payment_mode_id
+           from client_${clientId}c_awb_type  awb
+           inner join client_${clientId}c_payment_mode pm on pm.payment_mode_id = awb.payment_mode_id
            where awb.status = 1
            And awb.is_visible =1 
            `
@@ -71,13 +71,13 @@ exports.getAwbType = async (req, id) => {
   }));
 };
 
-exports.deleteAwbType = async (req, id) => {
+exports.deleteAwbType = async (req, id,clientId) => {
 
   if (!id) {
     throw 'enable to delete'
   }
   sql = `  Delete  
-           from client_1001.c_awb_type  
+           from client_${clientId}c_awb_type  
            where awb_id = '${id}'
            `
 
@@ -85,12 +85,13 @@ exports.deleteAwbType = async (req, id) => {
   return result[0];
 };
 
-exports.getAWBFillValues = async () => {
+exports.getAWBFillValues = async (clientId) => {
 
+  common.SessionData
   let col = ['payment_mode_id as Id', 'payment_mode_name as PaymentMode'];
   let sql = `
           Select ${col}
-          From client_1001.c_payment_mode
+          From client_${clientId}c_payment_mode
           where status = 1 And is_visible = 1
   `
   const result = await pool.query(sql);
@@ -103,10 +104,10 @@ exports.getAWBFillValues = async () => {
 
 /// Sales ---
 
-exports.getSalesFillValues = async (req) => {
+exports.getSalesFillValues = async (req,clientId) => {
 
   const officeSql = `
-  select * from client_1001.c_office s
+  select * from client_${clientId}c_office s
   where s.status = 1
   And s.is_visible =1 
   `
@@ -137,13 +138,13 @@ exports.getSalesFillValues = async (req) => {
   return filvalues;
 };
 
-exports.createAwbSales = async (req, data, id) => {
+exports.createAwbSales = async (req, data, id,clientId) => {
 
   let sql;
   let para;
   if (id) {
     sql = `
-           Update client_1001.c_awb_sale_rate 
+           Update client_${clientId}c_awb_sale_rate 
            set ?
            where sale_rate_id = '${id}'
       `
@@ -158,7 +159,7 @@ exports.createAwbSales = async (req, data, id) => {
   }
   else {
     const idColumn = await common.GetId("c_awb_sale_rate",'sale_rate_id','SR','000000')
-    sql = `INSERT INTO client_1001.c_awb_sale_rate SET ?`;
+    sql = `INSERT INTO client_${clientId}c_awb_sale_rate SET ?`;
 
     para = {
       awb_id: data.awbtype,
@@ -173,7 +174,7 @@ exports.createAwbSales = async (req, data, id) => {
   return result[0];
 };
 
-exports.getAwbSales = async (req, id) => {
+exports.getAwbSales = async (req, id,clientId) => {
 
   const col = [
     'sale_rate_id as `id`',
@@ -189,9 +190,9 @@ exports.getAwbSales = async (req, id) => {
   sql = `  select  ROW_NUMBER() over(Order By s.id )AS seq ,t.awb_type as AwbType , office.office_name as office,
             ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_sale_rate s
-           inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
-           inner join client_1001.c_office office on office.office_id = s.office_id
+           from client_${clientId}c_awb_sale_rate s
+           inner join client_${clientId}c_awb_type t on s.awb_id = t.awb_id
+           inner join client_${clientId}c_office office on office.office_id = s.office_id
            where s.status = 1
            And s.is_visible =1 
            `
@@ -210,13 +211,13 @@ exports.getAwbSales = async (req, id) => {
   }));
 };
 
-exports.deleteAwbSales = async (req, id) => {
+exports.deleteAwbSales = async (req, id,clientId) => {
 
   if (!id) {
     throw 'enable to delete'
   }
   sql = `  Delete  
-           from client_1001.c_awb_sale_rate 
+           from client_${clientId}c_awb_sale_rate 
            where sale_rate_id = '${id}'
            `
 
@@ -227,11 +228,11 @@ exports.deleteAwbSales = async (req, id) => {
 
 /// Purchase ---
 
-exports.getPurchaseFillValues = async (officeId) => {
+exports.getPurchaseFillValues = async (officeId,clientId) => {
 
 
   const officeSql = `
-  select * from client_1001.c_office s
+  select * from client_${clientId}c_office s
   where s.status = 1
   And s.is_visible =1 
   `
@@ -248,7 +249,7 @@ exports.getPurchaseFillValues = async (officeId) => {
   }) 
 
   const vendorSql = `
-  SELECT * FROM client_1001.c_office
+  SELECT * FROM client_${clientId}c_office
 WHERE branch_type_id ='B12'
   `
 
@@ -286,13 +287,13 @@ WHERE branch_type_id ='B12'
   return filvalues;
 };
 
-exports.createAwbPurchase = async (req, data, id) => {
+exports.createAwbPurchase = async (req, data, id,clientId) => {
 
   let sql;
   let para;
   let startingOrEndExistsSql =`
   SELECT 1
-  FROM client_1001.c_awb_purchase AS awbp
+  FROM client_${clientId}c_awb_purchase AS awbp
   WHERE ( ${data.startingno} BETWEEN awbp.starting_no AND awbp.end_no ) OR ( ${data.endno}  BETWEEN awbp.starting_no AND awbp.end_no)
   `
   let startingOrEndExistsresult = await pool.query(startingOrEndExistsSql);
@@ -301,7 +302,7 @@ exports.createAwbPurchase = async (req, data, id) => {
   }
   if (id) {
     sql = `
-           Update client_1001.c_awb_purchase 
+           Update client_${clientId}c_awb_purchase 
            set ?
            where awb_purchase_id = '${id}'
       `
@@ -320,7 +321,7 @@ exports.createAwbPurchase = async (req, data, id) => {
   else {
 
     const idColumn = await common.GetId("c_awb_purchase",'awb_purchase_id','PU','0000000')
-    sql = `INSERT INTO client_1001.c_awb_purchase SET ?`;
+    sql = `INSERT INTO client_${clientId}c_awb_purchase SET ?`;
 
     para = {
       awb_id: data.awbtype,
@@ -339,7 +340,7 @@ exports.createAwbPurchase = async (req, data, id) => {
   return result[0];
 };
 
-exports.getAwbPurchase = async (req, id) => {
+exports.getAwbPurchase = async (req, id,clientId) => {
 
   const col = [
     'awb_purchase_id as `id`',
@@ -361,10 +362,10 @@ exports.getAwbPurchase = async (req, id) => {
            vendor.office_name as vendor,
             ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_purchase s
-           inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
-           inner join client_1001.c_office office on office.office_id = s.office_id
-           inner join client_1001.c_office vendor on vendor.office_id = s.vendor_id
+           from client_${clientId}c_awb_purchase s
+           inner join client_${clientId}c_awb_type t on s.awb_id = t.awb_id
+           inner join client_${clientId}c_office office on office.office_id = s.office_id
+           inner join client_${clientId}c_office vendor on vendor.office_id = s.vendor_id
            where s.status = 1
            And s.is_visible =1 
            `
@@ -383,13 +384,13 @@ exports.getAwbPurchase = async (req, id) => {
   }));
 };
 
-exports.deleteAwbPurchase = async (req, id) => {
+exports.deleteAwbPurchase = async (req, id,clientId) => {
 
   if (!id) {
     throw 'enable to delete'
   }
   sql = `  Delete  
-           from client_1001.c_awb_purchase
+           from client_${clientId}c_awb_purchase
            where awb_purchase_id = '${id}'
            `
 
@@ -399,11 +400,11 @@ exports.deleteAwbPurchase = async (req, id) => {
 
 /// Issue ---
 
-exports.getIssueFillValues = async (officeId) => {
+exports.getIssueFillValues = async (officeId,clientId) => {
 
   let isHeadOfficeSql = `
      select 1
-     From client_1001.c_office 
+     From client_${clientId}c_office 
      where office_id = '${officeId}'
      And parent_office_id is null
   `
@@ -414,7 +415,7 @@ exports.getIssueFillValues = async (officeId) => {
   let officesSql = `
   
       select *
-      from client_1001.c_office 
+      from client_${clientId}c_office 
       where status = 1
       And is_visible =1
   `
@@ -443,9 +444,9 @@ exports.getIssueFillValues = async (officeId) => {
 
   const sqlStartingNo = `
     Select p.awb_id as AwbId, p.awb_purchase_id as PurchaseId, p.starting_no as StartingNo,p.end_no as EndNo,p.vendor_rate as VendorRate 
-    from client_1001.c_awb_purchase p
-    inner join client_1001.c_awb_type t on t.awb_id = p.awb_id
-    left join client_1001.c_awb_issue as iss on iss.starting_no = p.starting_no 
+    from client_${clientId}c_awb_purchase p
+    inner join client_${clientId}c_awb_type t on t.awb_id = p.awb_id
+    left join client_${clientId}c_awb_issue as iss on iss.starting_no = p.starting_no 
     where iss.id is null;
     
 
@@ -462,8 +463,8 @@ exports.getIssueFillValues = async (officeId) => {
   const applivableAwbTypesSql = `
 
   Select ${col}
-  From client_1001.c_awb_type t
-  where exists (select 1 from client_1001.c_awb_purchase p where p.awb_id = t.awb_id)
+  From client_${clientId}c_awb_type t
+  where exists (select 1 from client_${clientId}c_awb_purchase p where p.awb_id = t.awb_id)
   And t.status = 1
   And t.is_visible =1
   `
@@ -488,7 +489,7 @@ exports.createAwbIssue = async (req, data, id) => {
   let existAWBIssue = `
   
       select 1 
-      from client_1001.c_awb_issue
+      from client_${clientId}c_awb_issue
       where awb_id = '${data.awbtype}'
       And awb_purchase_id ='${data.purchaseid}'
       and starting_no = ${data.startingno}
@@ -497,7 +498,7 @@ exports.createAwbIssue = async (req, data, id) => {
 
   if (id) {
     sql = `
-           Update client_1001.c_awb_issue 
+           Update client_${clientId}c_awb_issue 
            set ?
            where awb_issue_id = '${id}'
       `
@@ -521,7 +522,7 @@ exports.createAwbIssue = async (req, data, id) => {
   else {
 
     const idColumn = await common.GetId("c_awb_issue",'awb_issue_id','AI','0000000')
-    sql = `INSERT INTO client_1001.c_awb_issue SET ?`;
+    sql = `INSERT INTO client_${clientId}c_awb_issue SET ?`;
 
     para = {
       awb_id: data.awbtype,
@@ -570,11 +571,11 @@ exports.getAwbIssue = async (req, id) => {
             p.id as PurchaseId,
             ${col},
            true as 'delete', true as 'edit'
-           from client_1001.c_awb_issue s
-           inner join client_1001.c_awb_type t on s.awb_id = t.awb_id
-           left join client_1001.c_awb_purchase p on p.awb_purchase_id = s.awb_purchase_id
-           inner join client_1001.c_office roffice on roffice.office_id = s.receiver_office_id
-           inner join client_1001.c_office office on office.office_id = s.office_id
+           from client_${clientId}c_awb_issue s
+           inner join client_${clientId}c_awb_type t on s.awb_id = t.awb_id
+           left join client_${clientId}c_awb_purchase p on p.awb_purchase_id = s.awb_purchase_id
+           inner join client_${clientId}c_office roffice on roffice.office_id = s.receiver_office_id
+           inner join client_${clientId}c_office office on office.office_id = s.office_id
            where s.status = 1
            And s.is_visible =1 
            `
@@ -599,7 +600,7 @@ exports.deleteAwbIssue = async (req, id) => {
     throw 'enable to delete'
   }
   sql = `  Delete  
-           from client_1001.c_awb_issue 
+           from client_${clientId}c_awb_issue 
            where awb_issue_id = '${id}'
            `
 

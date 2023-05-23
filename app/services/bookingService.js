@@ -3,7 +3,7 @@ const common = require('./commonService');
 const placeService = require('../services/placeService');
 const { format } = require('date-fns');
 
-exports.SearchAWBNumber = async (str) => {
+exports.SearchAWBNumber = async (str,clientId) => {
 
     // let col = [
     //     'max(awb.awb_prefix) as AwbPrefix',
@@ -14,8 +14,8 @@ exports.SearchAWBNumber = async (str) => {
     // ]
     // let sql = `
     //         Select ${col}
-    //         From client_1001.c_awb_type as awb
-    //         inner join client_1001.c_awb_issue as isu on isu.awb_id = awb.awb_id
+    //         From client_${clientId}.c_awb_type as awb
+    //         inner join client_${clientId}.c_awb_issue as isu on isu.awb_id = awb.awb_id
     //         where convert(awb.awb_prefix,char) Like '%${str}%'
     //         And awb.status = 1 And awb.is_visible = 1
     //         group by awb_prefix,isu.id
@@ -30,12 +30,12 @@ exports.SearchAWBNumber = async (str) => {
     ]
     let sql = `
             select ${col}
-            from client_1001.c_awb_issue as isu
-            inner join client_1001.c_awb_type as awb on awb.awb_id = isu.awb_id
+            from client_${clientId}.c_awb_issue as isu
+            inner join client_${clientId}.c_awb_type as awb on awb.awb_id = isu.awb_id
             where ${str} between isu.starting_no and isu.end_no 
             and not Exists
             (
-              select 1 from client_1001.c_booking as bk 
+              select 1 from client_${clientId}.c_booking as bk 
               where bk.awb_number = ${str}
             )
        `
@@ -43,7 +43,7 @@ exports.SearchAWBNumber = async (str) => {
     return result[0];
 }
 
-exports.SearchPinCode = async (str, id) => {
+exports.SearchPinCode = async (str, id,clientId) => {
 
     let col = [
         'post_code_id as Id',
@@ -64,7 +64,7 @@ exports.SearchPinCode = async (str, id) => {
     const result = await pool.query(sql);
     return result[0];
 }
-exports.SearchCities = async (str) => {
+exports.SearchCities = async (str,clientId) => {
 
     const col = ['da_city.city_id as `Id`',
         'da_city.city_name as `Name`',
@@ -90,7 +90,7 @@ exports.SearchCities = async (str) => {
     const result = await pool.query(sql);
     return result[0];
 }
-exports.SearchStates = async (str) => {
+exports.SearchStates = async (str,clientId) => {
 
     const col = ['da_state.state_id as `Id`',
         'da_state.state_name as `Name`',
@@ -115,7 +115,7 @@ exports.SearchStates = async (str) => {
     return result[0];
 }
 
-exports.GetLocalitiesOnPostCode = async (postCodeId) => {
+exports.GetLocalitiesOnPostCode = async (postCodeId,clientId) => {
 
     let col = [
         'locality_id as Id',
@@ -137,7 +137,7 @@ exports.GetLocalitiesOnPostCode = async (postCodeId) => {
 
 }
 
-exports.GetCityById = async (id) => {
+exports.GetCityById = async (id,clientId) => {
 
     const col = ['da_city.city_id as `Id`',
         'da_city.city_name as `Name`',
@@ -163,7 +163,7 @@ exports.GetCityById = async (id) => {
     const result = await pool.query(sql);
     return result[0];
 }
-exports.GetStateById = async (id) => {
+exports.GetStateById = async (id,clientId) => {
 
     const col = ['da_state.state_id as `Id`',
         'da_state.state_name as `Name`',
@@ -188,7 +188,7 @@ exports.GetStateById = async (id) => {
     return result[0];
 }
 
-exports.GetLocalitiesById = async (id) => {
+exports.GetLocalitiesById = async (id,clientId) => {
 
     let col = [
         'locality_id as Id',
@@ -210,7 +210,7 @@ exports.GetLocalitiesById = async (id) => {
 
 }
 
-exports.GetOfficeById = async (officeId) => {
+exports.GetOfficeById = async (officeId,clientId) => {
     let col = [
         'office_id as Id',
         'office_name as OfficeName',
@@ -218,7 +218,7 @@ exports.GetOfficeById = async (officeId) => {
     ]
     let sql = `
             Select *,${col}
-            From client_1001.c_office as L
+            From client_${clientId}.c_office as L
             where status = 1 And is_visible = 1
             And L.office_id  = '${officeId}'
        `
@@ -226,7 +226,7 @@ exports.GetOfficeById = async (officeId) => {
     return result[0];
 }
 
-exports.GetPincodeById = async (id) => {
+exports.GetPincodeById = async (id,clientId) => {
 
     let col = [
         'post_code_id as Id',
@@ -248,13 +248,13 @@ exports.GetPincodeById = async (id) => {
 }
 
 // fill values dependent
-exports.GetFillValuesByBookingId = async (id,officeId) => {
+exports.GetFillValuesByBookingId = async (id,officeId,clientId) => {
 
-    let sql = ` select * from client_1001.c_booking where id = '${id}'`;
+    let sql = ` select * from client_${clientId}.c_booking where id = '${id}'`;
     const result = await pool.query(sql);
     const row = result[0][0];
 
-    let consignorsql = ` select * from client_1001.c_booking_consignor_detail where booking_id = '${id}'`
+    let consignorsql = ` select * from client_${clientId}.c_booking_consignor_detail where booking_id = '${id}'`
     const consignorResult = await pool.query(consignorsql);
     let consignorRow;
     if (consignorResult[0].length > 0) {
@@ -291,69 +291,69 @@ exports.GetFillValuesByBookingId = async (id,officeId) => {
 }
 
 // fill values
-exports.GetDeliveryModes = async () => {
+exports.GetDeliveryModes = async (clientId) => {
 
     let col = ['id as Id', 'delivery_mode_name as DeliveryMode'];
     let sql = `
             Select ${col}
-            From client_1001.c_delivery_mode
+            From client_${clientId}.c_delivery_mode
             where status = 1 And is_visible = 1
     `
     const result = await pool.query(sql);
     return result[0];
 }
 
-exports.GetServiceModes = async () => {
+exports.GetServiceModes = async (clientId) => {
 
     let col = ['id as Id', 'service_mode_name as ServiceMode'];
     let sql = `
             Select ${col}
-            From client_1001.c_service_mode
+            From client_${clientId}.c_service_mode
             where status = 1 And is_visible = 1
     `
     const result = await pool.query(sql);
     return result[0];
 }
 
-exports.GetPaymentModes = async () => {
+exports.GetPaymentModes = async (clientId) => {
 
     let col = ['payment_mode_id as Id', 'payment_mode_name as PaymentMode'];
     let sql = `
             Select ${col}
-            From client_1001.c_payment_mode
+            From client_${clientId}.c_payment_mode
             where status = 1 And is_visible = 1
     `
     const result = await pool.query(sql);
     return result[0];
 }
 
-exports.GetGstRates = async () => {
+exports.GetGstRates = async (clientId) => {
 
     let col = ["gst_rate_id  as Id", " CONCAT( gst_rate_name ,' @ ', rate,' %') as Name", 'rate as Rate'];
     let sql = `
             Select ${col}
-            From client_1001.c_gst_rate
+            From client_${clientId}.c_gst_rate
             where status = 1 And is_visible = 1
     `
     const result = await pool.query(sql);
     return result[0];
 }
-exports.GetConsingmentTypes = async () => {
+exports.GetConsingmentTypes = async (clientId) => {
 
     let col = ['consignment_type_id as Id', 'consignment_type_name as ConsingmentType', 'from_weight as FromWeight', 'to_weight as ToWeight'];
     let sql = `
             Select ${col}
-            From client_1001.c_consignment_type
+            From client_${clientId}.c_consignment_type
             where status = 1 And is_visible = 1
     `
     const result = await pool.query(sql);
     return result[0];
 }
-exports.IsHeadOffice = async (officeId) => {
+exports.IsHeadOffice = async (officeId,clientId) => {
 
     let isHeadOfficeSql = `
     select 1
-    From client_1001.c_office 
+    From client_${clientId}.c_office 
     where office_id = '${officeId}'
     And parent_office_id is null
     `
@@ -365,13 +365,13 @@ exports.IsHeadOffice = async (officeId) => {
 //=================================
 
 
-exports.CreatBooking = async (data, id) => {
+exports.CreatBooking = async (data, id,clientId) => {
 
     let sql;
     let para;
     if (id) {
         sql = `
-             Update client_1001.c_booking 
+             Update client_${clientId}.c_booking 
              set ?
              where id = '${id}'
         `
@@ -416,7 +416,7 @@ exports.CreatBooking = async (data, id) => {
     else {
 
         const idColumn = await common.GetId("c_booking",'id','BI','0000000')
-        sql = 'INSERT INTO client_1001.c_booking SET ?';
+        sql = `INSERT INTO client_${clientId}.c_booking SET ?`;
 
         para = {
             awb_id: data?.awb_id,
@@ -467,7 +467,7 @@ exports.CreatBooking = async (data, id) => {
         const result = await con.query(sql, [para]);
         data.booking_id = id || para.id
         
-        await saveConsignorDetail(data,con);
+        await saveConsignorDetail(data,con,clientId);
         con.commit();
         return result[0];
     }
@@ -479,10 +479,11 @@ exports.CreatBooking = async (data, id) => {
         con.release();
     }
 };
-async function saveConsignorDetail(consignorData, con) {
+
+async function saveConsignorDetail(consignorData, con,clientId) {
 
     if (consignorData?.booking_id) {
-        const deleteQuery = ` delete from client_1001.c_booking_consignor_detail where booking_id = '${consignorData?.booking_id}'`;
+        const deleteQuery = ` delete from client_${clientId}.c_booking_consignor_detail where booking_id = '${consignorData?.booking_id}'`;
         await con.query(deleteQuery);
     }
 
@@ -495,12 +496,12 @@ async function saveConsignorDetail(consignorData, con) {
         consignor_state_id: consignorData?.consignor_state_id,
     }
 
-    let sql = 'INSERT INTO client_1001.c_booking_consignor_detail SET ?';
+    let sql = `INSERT INTO client_${clientId}.c_booking_consignor_detail SET ?`;
     const result = await con.query(sql, [para]);
     return result[0];
 }
 
-exports.GetBookings = async (id) => {
+exports.GetBookings = async (id,clientId) => {
 
     let sql = ` 
 
@@ -515,10 +516,10 @@ exports.GetBookings = async (id) => {
          ROW_NUMBER() OVER( Order By booking.awb_id asc) AS seq ,
          true as 'delete', true as 'edit',
          awb.awb_prefix
-    from client_1001.c_booking as booking
-    inner join client_1001.c_awb_type as awb on awb.awb_id = booking.awb_id 
-    inner join client_1001.c_office as office on office.office_id = booking.booking_office_id
-    LEFT JOIN client_1001.c_booking_consignor_detail bcd ON bcd.booking_id = booking.id
+    from client_${clientId}.c_booking as booking
+    inner join client_${clientId}.c_awb_type as awb on awb.awb_id = booking.awb_id 
+    inner join client_${clientId}.c_office as office on office.office_id = booking.booking_office_id
+    LEFT JOIN client_${clientId}.c_booking_consignor_detail bcd ON bcd.booking_id = booking.id
     Order By booking.awb_id asc
    
     `
@@ -531,14 +532,14 @@ exports.GetBookings = async (id) => {
       }));
 }
 
-exports.DeleteBooking =async (id) => {
+exports.DeleteBooking =async (id,clientId) => {
 
     const con = await pool.getConnection();
     let sqlDetailConsignor = ` 
-    delete  from client_1001.c_booking_consignor_detail where booking_id = '${id}'
+    delete  from client_${clientId}.c_booking_consignor_detail where booking_id = '${id}'
 `
     let sqlMainDelete = ` 
-        delete  from client_1001.c_booking where id = '${id}'
+        delete  from client_${clientId}.c_booking where id = '${id}'
     `
     try{
 
@@ -561,12 +562,12 @@ exports.DeleteBooking =async (id) => {
    
 }
 
-exports.getConsignorDetail =async (mobileNo) => {
+exports.getConsignorDetail =async (mobileNo,clientId) => {
 
    
     let sqlDetailConsignor = ` 
      select consignor_name,consignor_address,consignor_mobile 
-     from client_1001.c_booking_consignor_detail 
+     from client_${clientId}.c_booking_consignor_detail 
      where consignor_mobile like '${mobileNo}%'
      group by consignor_name,consignor_address,consignor_mobile 
 
@@ -580,12 +581,12 @@ exports.getConsignorDetail =async (mobileNo) => {
    
 }
 
-exports.getConsigneeDetail =async (mobileNo) => {
+exports.getConsigneeDetail =async (mobileNo,clientId) => {
 
    
     let sqlDetailConsignor = ` 
      select consignee_name,consignee_address,consignee_mobile 
-     from client_1001.c_booking 
+     from client_${clientId}.c_booking 
      where consignee_mobile  like '${mobileNo}%'
      group by consignee_name,consignee_address,consignee_mobile 
 `
