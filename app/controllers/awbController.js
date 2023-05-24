@@ -3,7 +3,7 @@ const service = require('../services/awbService');
 const common = require('../services/commonService');
 exports.createAwbType = async (req, res, next) => {
   try {
-    const result = await service.createAwbType(req, req.body, req.params.id);
+    const result = await service.createAwbType(req, req.body, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -17,9 +17,11 @@ exports.createAwbType = async (req, res, next) => {
   }
 };
 
+
+
 exports.getAwbType = async (req, res, next) => {
   try {
-    const result = await service.getAwbType(req, req.params.id);
+    const result = await service.getAwbType(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -34,7 +36,7 @@ exports.getAwbType = async (req, res, next) => {
 };
 exports.getAWBFillValues = async (req, res, next) => {
   try {
-    const result = await service.getAWBFillValues();
+    const result = await service.getAWBFillValues(req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -50,7 +52,7 @@ exports.getAWBFillValues = async (req, res, next) => {
 
 exports.deleteAwbType = async (req, res, next) => {
   try {
-    const result = await service.deleteAwbType(req, req.params.id);
+    const result = await service.deleteAwbType(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -65,7 +67,7 @@ exports.deleteAwbType = async (req, res, next) => {
 };
 exports.getAWBFillValues = async (req, res, next) => {
   try {
-    const result = await service.getAWBFillValues();
+    const result = await service.getAWBFillValues(req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -81,7 +83,7 @@ exports.getAWBFillValues = async (req, res, next) => {
 
 exports.awbSalesFillValues = async (req, res, next) => {
   try {
-    const result = await service.getSalesFillValues(req);
+    const result = await service.getSalesFillValues(req,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -97,7 +99,7 @@ exports.awbSalesFillValues = async (req, res, next) => {
 
 exports.createAwbSales = async (req, res, next) => {
   try {
-    const result = await service.createAwbSales(req, req.body, req.params.id);
+    const result = await service.createAwbSales(req, req.body, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -113,7 +115,7 @@ exports.createAwbSales = async (req, res, next) => {
 
 exports.getAwbSales = async (req, res, next) => {
   try {
-    const result = await service.getAwbSales(req, req.params.id);
+    const result = await service.getAwbSales(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -129,7 +131,7 @@ exports.getAwbSales = async (req, res, next) => {
 
 exports.deleteAwbSales = async (req, res, next) => {
   try {
-    const result = await service.deleteAwbSales(req, req.params.id);
+    const result = await service.deleteAwbSales(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -148,7 +150,7 @@ exports.deleteAwbSales = async (req, res, next) => {
 
 exports.awbPurchaseFillValues = async (req, res, next) => {
   try {
-    const result = await service.getPurchaseFillValues(req.session.userSession.officeId);
+    const result = await service.getPurchaseFillValues(req.session.userSession.officeId,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -164,7 +166,7 @@ exports.awbPurchaseFillValues = async (req, res, next) => {
 
 exports.createAwbPurchase = async (req, res, next) => {
   try {
-    const result = await service.createAwbPurchase(req, req.body, req.params.id);
+    const result = await service.createAwbPurchase(req, req.body, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -188,7 +190,7 @@ exports.createAwbPurchase = async (req, res, next) => {
 
 exports.getAwbPurchase = async (req, res, next) => {
   try {
-    const result = await service.getAwbPurchase(req, req.params.id);
+    const result = await service.getAwbPurchase(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -204,7 +206,7 @@ exports.getAwbPurchase = async (req, res, next) => {
 
 exports.deleteAwbPurchase = async (req, res, next) => {
   try {
-    const result = await service.deleteAwbPurchase(req, req.params.id);
+    const result = await service.deleteAwbPurchase(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -224,7 +226,7 @@ exports.deleteAwbPurchase = async (req, res, next) => {
 exports.awbIssueFillValues = async (req, res, next) => {
   try {
     console.log(req.session)
-    const result = await service.getIssueFillValues(req.session.userSession.officeId);
+    const result = await service.getIssueFillValues(req.session.userSession.officeId,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -240,7 +242,7 @@ exports.awbIssueFillValues = async (req, res, next) => {
 
 exports.createAwbIssue = async (req, res, next) => {
   try {
-    const result = await service.createAwbIssue(req, req.body, req.params.id);
+    const result = await service.createAwbIssue(req, req.body, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -256,7 +258,7 @@ exports.createAwbIssue = async (req, res, next) => {
 
 exports.getAwbIssue = async (req, res, next) => {
   try {
-    const result = await service.getAwbIssue(req, req.params.id);
+    const result = await service.getAwbIssue(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result
@@ -272,7 +274,7 @@ exports.getAwbIssue = async (req, res, next) => {
 
 exports.deleteAwbIssue = async (req, res, next) => {
   try {
-    const result = await service.deleteAwbIssue(req, req.params.id);
+    const result = await service.deleteAwbIssue(req, req.params.id,req.session.userSession.clientId);
     res.status(201).json({
       success: true,
       data: result

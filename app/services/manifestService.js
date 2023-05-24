@@ -4,16 +4,16 @@ const common = require('./commonService');
 
 
 
-exports.GetFillValues = async (userId, officeId) => {
+exports.GetFillValues = async (userId, officeId,clientId) => {
 
-    let offices = await Offices();
-    let awbNos = await AwbNos(userId);
-    let vendors = await Vendors();
-    let wheelDetails = await WheelDetails();
+    let offices = await Offices(clientId);
+    let awbNos = await AwbNos(userId,clientId);
+    let vendors = await Vendors(clientId);
+    let wheelDetails = await WheelDetails(clientId);
 
     let isHeadOfficeSql = `
     select 1
-    From client_1001.c_office 
+    From client_${clientId}.c_office 
     where office_id = '${officeId}'
     And parent_office_id is null
     `
@@ -37,7 +37,7 @@ exports.GetFillValues = async (userId, officeId) => {
 
 }
 
-exports.CreateManifest = async (data) => {
+exports.CreateManifest = async (data,clientId) => {
 
     let con = await pool.getConnection();
     
@@ -47,7 +47,7 @@ exports.CreateManifest = async (data) => {
 
         let sql =
         `
-    insert into client_1001.c_manifest SET ?
+    insert into client_${clientId}.c_manifest SET ?
      
   `
 
@@ -70,7 +70,7 @@ exports.CreateManifest = async (data) => {
         return [idColumn,x]
     })
 
-    let awbDetailsql = ` Insert into client_1001.c_manifest_booking_detail (manifest_id,booking_id) values ?`
+    let awbDetailsql = ` Insert into client_${clientId}.c_manifest_booking_detail (manifest_id,booking_id) values ?`
     let awbDetailRes = await con.query(awbDetailsql,[values]);
 
     con.commit();
@@ -89,11 +89,11 @@ exports.CreateManifest = async (data) => {
    
 }
 
-exports.CreateManifestDetail = async (data, manifestId) => {
+exports.CreateManifestDetail = async (data, manifestId,clientId) => {
 
     let sql =
         `
-      insert into client_1001.c_manifest_detail SET ?
+      insert into client_${clientId}.c_manifest_detail SET ?
        
     `
     let para = {
@@ -106,21 +106,21 @@ exports.CreateManifestDetail = async (data, manifestId) => {
     return res[0];
 }
 
-exports.DeleteManifest = async (manifestId) => {
+exports.DeleteManifest = async (manifestId,clientId) => {
 
     let detailDeleteSql =
         `
-      delete from client_1001.c_manifest_detail where manifest_id = '${manifestId}'
+      delete from client_${clientId}.c_manifest_detail where manifest_id = '${manifestId}'
        
     `
     let detailDeleteAwbSql =
         `
-      delete from client_1001.c_manifest_booking_detail where manifest_id = '${manifestId}'
+      delete from client_${clientId}.c_manifest_booking_detail where manifest_id = '${manifestId}'
        
     `
     let mainDeleteSql =
         `
-      delete from client_1001.c_manifest where id = '${manifestId}'
+      delete from client_${clientId}.c_manifest where id = '${manifestId}'
        
     `
 
@@ -149,7 +149,7 @@ exports.DeleteManifest = async (manifestId) => {
 
 }
 
-exports.GetManifests = async () => {
+exports.GetManifests = async (clientId) => {
 
     let detailDeleteSql =
         `
@@ -158,17 +158,17 @@ exports.GetManifests = async () => {
         DOffice.office_name AS 'destination_office',
         (
              SELECT GROUP_CONCAT(bk.awb_number) AS awbno
-              FROM client_1001.c_manifest_booking_detail as mawb
-              inner join client_1001.c_booking as bk on bk.id = mawb.booking_id
+              FROM client_${clientId}.c_manifest_booking_detail as mawb
+              inner join client_${clientId}.c_booking as bk on bk.id = mawb.booking_id
               WHERE mawb.manifest_id = m.id
               GROUP BY mawb.manifest_id
           ) AS 'awb_no',
         
         ROW_NUMBER() over(Order By manifest_id )AS seq ,
          true as 'delete'
-         From client_1001.c_manifest AS m
-         INNER JOIN client_1001.c_office AS Office ON Office.office_id = m.origin_office_id
-         INNER JOIN client_1001.c_office AS DOffice ON DOffice.office_id = m.destination_office_id
+         From client_${clientId}.c_manifest AS m
+         INNER JOIN client_${clientId}.c_office AS Office ON Office.office_id = m.origin_office_id
+         INNER JOIN client_${clientId}.c_office AS DOffice ON DOffice.office_id = m.destination_office_id
         
          WHERE  m.status = 1
          AND m.is_visible =1
@@ -180,13 +180,13 @@ exports.GetManifests = async () => {
 
 }
 
-async function Offices() {
+async function Offices( clientId) {
 
     let officeSql = `
        
     select office_id as Id,
     office_name as OfficeName
-    From client_1001.c_office 
+    From client_${clientId}.c_office 
     where  status = 1
     And is_visible =1 
     
@@ -196,13 +196,13 @@ async function Offices() {
     return offices[0]
 }
 
-async function Vendors() {
+async function Vendors( clientId) {
 
     let officeSql = `
        
     select office_id as Id,
     office_name as OfficeName
-    From client_1001.c_office 
+    From client_${clientId}.c_office 
     where  status = 1
     And is_visible =1 
     And branch_type_id ='B12'
@@ -213,15 +213,15 @@ async function Vendors() {
     return offices[0]
 }
 
-async function AwbNos(userId) {
+async function AwbNos(userId ,clientId) {
 
     let awbNosSql = `
     Select awb.awb_id,awb.awb_type,bk.awb_number AS awb_prefix,bk.id as booking_id
-    from client_1001.c_awb_type as awb
-    inner join client_1001.c_booking as bk on bk.awb_id = awb.awb_id
-    INNER join client_1001.c_office as office on office.office_id = bk.booking_office_id
-    INNER join client_1001.c_user as u on u.office_id = office.office_id OR u.office_id = office.parent_office_id
-    left join client_1001.c_manifest_booking_detail as mawb on mawb.booking_id = bk.id
+    from client_${clientId}.c_awb_type as awb
+    inner join client_${clientId}.c_booking as bk on bk.awb_id = awb.awb_id
+    INNER join client_${clientId}.c_office as office on office.office_id = bk.booking_office_id
+    INNER join client_${clientId}.c_user as u on u.office_id = office.office_id OR u.office_id = office.parent_office_id
+    left join client_${clientId}.c_manifest_booking_detail as mawb on mawb.booking_id = bk.id
     where u.id = ${userId}
     And  awb.status = 1
     And awb.is_visible =1 
@@ -236,10 +236,10 @@ async function AwbNos(userId) {
 
 }
 
-async function WheelDetails(){
+async function WheelDetails( clientId) {
     let sql = `
       select *
-      From client_1001.c_wheel_detail
+      From client_${clientId}.c_wheel_detail
       where  status = 1
       And is_visible =1 
     `
