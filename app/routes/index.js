@@ -22,5 +22,6 @@ app.use('/businesses', require('./businessRouter'));
 app.use('/awb', require('./awbRouter'));
 app.use('/book', require('./bookingRouter'));
 app.use('/manifest', require('./manifestRouter'));
+app.use('/tariffs', require('./tariffRouter'));
 
 module.exports = app
