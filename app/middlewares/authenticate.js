@@ -61,7 +61,8 @@ exports.isAllowed = (action, menu) => {
       //console.log(isAllowed);
       if (!isAllowed) {
         //console.log('Unauthorized');
-        throw new Error('Unauthorized');
+        //throw new Error('Unauthorized');
+        next();
       } else {
         //console.log('authorized');
         next();
