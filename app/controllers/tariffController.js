@@ -230,3 +230,145 @@ exports.createCustomerTariff = async (req, res, next) => {
       });
     }
   };
+
+  exports.updateCustomerTariff = async (req, res, next) => {
+    try {
+      const session = req.session.userSession;
+      const data = req.body;
+    
+        // Retrieve values from data variable and handle null, undefined, or empty values
+        const rt_id = data.rt_id || '';
+        const ct_customer = data.ct_customer || '';
+        const ct_discount = data.ct_discount || '';
+        const ct_dsc = data.ct_dsc || '';
+        const ct_fsc = data.ct_fsc || '';
+        const ct_gst = data.ct_gst || '';
+        const ct_insurance = data.ct_insurance || '';
+        const ct_others = data.ct_others || '';
+    
+        // Create JSON with key-value pairs
+        const jsonData = {
+          rt_id,
+          ct_customer,
+          ct_discount,
+          ct_dsc,
+          ct_fsc,
+          ct_gst,
+          ct_insurance,
+          ct_others,
+        };
+    
+        // Create new data variable with ct_json and ct_name keys
+        const newData = {
+          ct_json: jsonData,
+          ct_name: data.ct_name
+        };
+    
+        // Pass the newly created data variable into "updateCustomerTariff" function
+      const result = await service.updateCustomerTariff(req, req.params.id, jsonData, session);
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error(err);
+      const message = err.message || 'An unknown error occurred';
+      res.status(400).json({
+        success: false,
+        message: message
+      });
+    }
+  };
+
+  exports.getCustomerTariffs = async (req, res, next) => {
+    try {
+      const session = req.session.userSession;
+  
+      const result = await service.getCustomerTariffs(req, session);
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error(err);
+      const message = err.message || 'An unknown error occurred';
+      res.status(400).json({
+        success: false,
+        message: message
+      });
+    }
+  };
+  
+  exports.getCustomerTariff = async (req, res, next) => {
+      try {
+        const session = req.session.userSession;
+    
+        const result = await service.getCustomerTariff(req, req.params.id, session);
+        res.status(200).json({
+          success: true,
+          data: result
+        });
+  
+      } catch (err) {
+        console.error(err);
+        const message = err.message || 'An unknown error occurred';
+        res.status(400).json({
+          success: false,
+          message: message
+        });
+      }
+    };
+
+  exports.deleteCustomerTariff = async (req, res, next) => {
+    try {
+      const session = req.session.userSession;
+  
+      const result = await service.deleteCustomerTariff(req, req.params.id, session);
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error(err);
+      const message = err.message || 'An unknown error occurred';
+      res.status(400).json({
+        success: false,
+        message: message
+      });
+    }
+  };
+
+  exports.getCustomers = async (req, res, next) => {
+    try {
+      const session = req.session.userSession;
+      const result = await service.getCustomers(req, req.body, session);
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error(err);
+      const message = err.message || 'An unknown error occurred';
+      res.status(400).json({
+        success: false,
+        message: message
+      });
+    }
+  };
+  exports.getRateTariffs = async (req, res, next) => {
+    try {
+      const session = req.session.userSession;
+      const result = await service.getRateTariffs(req, req.body, session);
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error(err);
+      const message = err.message || 'An unknown error occurred';
+      res.status(400).json({
+        success: false,
+        message: message
+      });
+    }
+  };
